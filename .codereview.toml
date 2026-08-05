@@ -1,0 +1,33 @@
+[codereview]
+provider = "mock"
+model = "gpt-4o"
+temperature = 0.2
+max_tokens = 2000
+language = "auto"
+
+[review]
+ignored_folders = [
+    ".git",
+    "venv",
+    ".venv",
+    "node_modules",
+    "dist",
+    "build",
+    "__pycache__",
+    ".pytest_cache",
+    ".egg-info"
+]
+ignored_files = [
+    "package-lock.json",
+    "yarn.lock",
+    "poetry.lock"
+]
+max_file_size_kb = 500
+target_score = 8.5
+
+[security]
+fail_on_high_severity = false
+
+[reports]
+output_dir = "reports"
+default_format = "text"
