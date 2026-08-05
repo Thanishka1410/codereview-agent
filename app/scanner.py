@@ -74,12 +74,12 @@ class Scanner:
             ignored_folders
             or [
                 ".git", "venv", ".venv", "node_modules", "dist", "build",
-                "__pycache__", ".pytest_cache", ".egg-info", ".idea", ".vscode", "reports"
+                "__pycache__", ".pytest_cache", ".egg-info", ".idea", ".vscode", "reports", "examples"
             ]
         )
         self.ignored_files: Set[str] = set(
             ignored_files
-            or ["package-lock.json", "yarn.lock", "poetry.lock", "Pipfile.lock"]
+            or ["package-lock.json", "yarn.lock", "poetry.lock", "Pipfile.lock", ".codereview_cache.json"]
         )
         self.include_patterns = include_patterns or []
         self.exclude_patterns = exclude_patterns or []
@@ -108,8 +108,8 @@ class Scanner:
                 first_lines = "".join([f.readline() for _ in range(5)]).lower()
                 if "@generated" in first_lines or "auto-generated" in first_lines:
                     return True
-        except Exception:
-            pass
+        except (OSError, UnicodeDecodeError):
+            return False
         return False
 
     def detect_language(self, file_path: Path) -> str:
@@ -197,6 +197,18 @@ class Scanner:
             line_count=line_count,
         )
 
+    def _collect_file_candidates(self, target: Path) -> List[Path]:
+        """Collect all candidate file paths for parallel scanning."""
+        file_candidates: List[Path] = []
+        for current_root, dirs, files in os.walk(target, followlinks=False):
+            dirs[:] = [
+                d for d in dirs
+                if d not in self.ignored_folders and not d.startswith(".")
+            ]
+            for file in files:
+                file_candidates.append(Path(current_root) / file)
+        return file_candidates
+
     def scan(self, target_path: str | Path) -> ProjectScanResult:
         """Scan target path using parallel ThreadPoolExecutor for high performance."""
         target = Path(target_path).resolve()
@@ -212,17 +224,11 @@ class Scanner:
             if sf:
                 scanned_files.append(sf)
         else:
-            file_candidates: List[Path] = []
-            for current_root, dirs, files in os.walk(target, followlinks=False):
-                dirs[:] = [
-                    d for d in dirs
-                    if d not in self.ignored_folders and not d.startswith(".")
-                ]
-                for file in files:
-                    file_candidates.append(Path(current_root) / file)
+            file_candidates = self._collect_file_candidates(target)
 
             # Parallel scanning using ThreadPoolExecutor
-            with ThreadPoolExecutor(max_workers=min(16, os.cpu_count() or 4)) as executor:
+            workers = min(16, os.cpu_count() or 4)
+            with ThreadPoolExecutor(max_workers=workers) as executor:
                 futures = [executor.submit(self.scan_file, f, root) for f in file_candidates]
                 for future in as_completed(futures):
                     res = future.result()

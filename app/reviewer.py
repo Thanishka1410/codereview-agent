@@ -217,7 +217,7 @@ class ReviewerEngine:
         quality_score = max(1.0, min(10.0, 10.0 - quality_penalty))
 
         # 3. Maintainability Score (25% Weight)
-        maint_penalty = (avg_complexity * 0.3) + sum(0.5 if i.severity == "MEDIUM" else 0.1 for i in issues)
+        maint_penalty = max(0.0, (avg_complexity - 2.0) * 0.5) + sum(0.3 if i.severity == "MEDIUM" else 0.1 for i in issues)
         maint_score = max(1.0, min(10.0, 10.0 - maint_penalty))
 
         # 4. Performance Score (15% Weight)

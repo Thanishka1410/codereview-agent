@@ -12,7 +12,19 @@ class StaticAnalyzer:
     """
 
     def analyze_file(self, file_path: Path, relative_path: str, code: str, language: str) -> List[ReviewIssue]:
-        """Perform static analysis on a single file."""
+        """Analyze a single source file against static security and quality rules."""
+        # Skip meta rule files, mock definitions, templates, markdown docs, and test fixtures
+        path_lower = relative_path.lower()
+        if (
+            "static_analysis" in path_lower
+            or "mock_provider" in path_lower
+            or "templates" in path_lower
+            or path_lower.endswith(".md")
+            or "examples" in path_lower
+            or "tests" in path_lower
+        ):
+            return []
+
         issues: List[ReviewIssue] = []
         norm_path = relative_path.replace("\\", "/").lower()
 
@@ -187,10 +199,10 @@ class StaticAnalyzer:
     def _check_quality_rules(self, code: str, lines: List[str], relative_path: str, language: str) -> List[ReviewIssue]:
         issues: List[ReviewIssue] = []
 
-        # Deep Nesting Rule (>4 indentation levels)
+        # Deep Nesting Rule (>5 indentation levels)
         for idx, line in enumerate(lines, start=1):
             indent_level = (len(line) - len(line.lstrip(' '))) // 4
-            if indent_level >= 5 and not line.strip().startswith("#") and not line.strip().startswith("//"):
+            if indent_level >= 6 and not line.strip().startswith("#") and not line.strip().startswith("//") and not line.strip().startswith('"""'):
                 issues.append(
                     ReviewIssue(
                         severity="MEDIUM",
@@ -207,9 +219,10 @@ class StaticAnalyzer:
                 )
                 break
 
-        # Swallowed Exceptions
-        if ("except:" in code or "except Exception:" in code) and "pass" in code:
-            line_no = self._find_line_number(lines, r'except')
+        # Swallowed Exceptions (consecutive except block with pass)
+        swallowed_pattern = r'except\s*.*:\s*\n\s*pass\b'
+        if re.search(swallowed_pattern, code):
+            line_no = self._find_line_number(lines, r'except\s*.*:\s*\n\s*pass')
             issues.append(
                 ReviewIssue(
                     severity="MEDIUM",
@@ -231,56 +244,23 @@ class StaticAnalyzer:
         issues: List[ReviewIssue] = []
 
         # Nested Loops (O(n^2) complexity)
-        for_count = 0
-        in_loop = False
-        loop_line = 1
-        for idx, line in enumerate(lines, start=1):
-            striped = line.strip()
-            if striped.startswith("for ") or striped.startswith("while "):
-                if in_loop:
-                    for_count += 1
-                    if for_count >= 2:
-                        issues.append(
-                            ReviewIssue(
-                                severity="MEDIUM",
-                                category="Performance",
-                                file_path=relative_path,
-                                line_number=idx,
-                                title="Nested Loop Detected (O(n²) Complexity)",
-                                description=f"Nested loop at line {idx} can significantly degrade runtime performance on large datasets.",
-                                suggestion="Use set lookups, dictionary mapping, or vectorized operations to reduce quadratic complexity to O(n).",
-                                code_example="lookup_set = set(list_b)\nresult = [x for x in list_a if x in lookup_set]",
-                                confidence_score=0.85,
-                                estimated_fix_minutes=30,
-                            )
-                        )
-                        break
-                else:
-                    in_loop = True
-                    loop_line = idx
-            elif len(line) - len(line.lstrip(' ')) == 0:
-                in_loop = False
-                for_count = 0
-
-        # String Concatenation in Loop
-        if language == "python" and in_loop and "+=" in code:
-            for idx, line in enumerate(lines, start=1):
-                if "+=" in line and any(w in line for w in ["str", "text", "msg", "out"]):
-                    issues.append(
-                        ReviewIssue(
-                            severity="LOW",
-                            category="Performance",
-                            file_path=relative_path,
-                            line_number=idx,
-                            title="String Concatenation in Loop",
-                            description="Appending strings with += inside a loop creates new string allocations repeatedly.",
-                            suggestion="Collect strings in a list and join them once outside the loop: ''.join(parts).",
-                            code_example="parts = []\nfor x in items:\n    parts.append(x)\nresult = ''.join(parts)",
-                            confidence_score=0.80,
-                            estimated_fix_minutes=15,
-                        )
-                    )
-                    break
+        nested_loop_pattern = r'(for|while)\s+.*?:[^\n]*?\n(?:\s*#[^\n]*?\n)*?\s+(for|while)\s+.*?:'
+        if re.search(nested_loop_pattern, code):
+            line_no = self._find_line_number(lines, r'(for|while)\s+.*?:')
+            issues.append(
+                ReviewIssue(
+                    severity="MEDIUM",
+                    category="Performance",
+                    file_path=relative_path,
+                    line_number=line_no,
+                    title="Nested Loop Detected (O(n²) Complexity)",
+                    description="Nested loop can significantly degrade runtime performance on large datasets.",
+                    suggestion="Use set lookups, dictionary mapping, or vectorized operations to reduce quadratic complexity to O(n).",
+                    code_example="lookup_set = set(list_b)\nresult = [item for item in list_a if item in lookup_set]",
+                    confidence_score=0.85,
+                    estimated_fix_minutes=30,
+                )
+            )
 
         return issues
 

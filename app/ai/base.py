@@ -49,6 +49,20 @@ class BaseAIProvider(ABC):
         pass
 
 
+def build_review_issue_from_dict(item: dict, default_path: str) -> ReviewIssue:
+    """Construct ReviewIssue model from raw dictionary payload."""
+    return ReviewIssue(
+        severity=str(item.get("severity", "MEDIUM")).upper(),
+        category=item.get("category", "General"),
+        file_path=item.get("file_path", default_path),
+        line_number=item.get("line_number"),
+        title=item.get("title", "Review Finding"),
+        description=item.get("description", ""),
+        suggestion=item.get("suggestion", ""),
+        code_example=item.get("code_example"),
+        confidence_score=float(item.get("confidence_score", 0.9)),
+        estimated_fix_minutes=int(item.get("estimated_fix_minutes", 15)),
+    )
 def repair_json_text(raw_text: str) -> str:
     """Utility function to clean and repair malformed JSON string from LLM responses."""
     clean_text = raw_text.strip()

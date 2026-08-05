@@ -37,6 +37,34 @@ def version_callback(value: bool):
         raise typer.Exit()
 
 
+def _run_review_with_progress(engine: ReviewerEngine, target_path: Path, diff: bool, category_filter: Optional[str]) -> ProjectReviewResult:
+    """Run code review with interactive Rich progress bar."""
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[bold cyan]{task.description}[/bold cyan]"),
+        BarColumn(),
+        TaskProgressColumn(),
+        console=console,
+        transient=True,
+    ) as progress:
+        task_id = progress.add_task("Scanning project...", total=100)
+
+        def progress_cb(current: int, total: int, current_file: str):
+            pct = int((current / max(1, total)) * 100)
+            progress.update(
+                task_id,
+                completed=pct,
+                description=f"Reviewing [{current}/{total}]: {current_file}",
+            )
+
+        return engine.run_review(
+            target_path=target_path,
+            diff_only=diff,
+            category_filter=category_filter,
+            progress_callback=progress_cb,
+        )
+
+
 @app.command()
 def main(
     path: str = typer.Argument(
@@ -202,30 +230,7 @@ def main(
                 category_filter=category_filter,
             )
         else:
-            with Progress(
-                SpinnerColumn(),
-                TextColumn("[bold cyan]{task.description}[/bold cyan]"),
-                BarColumn(),
-                TaskProgressColumn(),
-                console=console,
-                transient=True,
-            ) as progress:
-                task_id = progress.add_task("Scanning project...", total=100)
-
-                def progress_cb(current: int, total: int, current_file: str):
-                    pct = int((current / max(1, total)) * 100)
-                    progress.update(
-                        task_id,
-                        completed=pct,
-                        description=f"Reviewing [{current}/{total}]: {current_file}",
-                    )
-
-                result: ProjectReviewResult = engine.run_review(
-                    target_path=target_path,
-                    diff_only=diff,
-                    category_filter=category_filter,
-                    progress_callback=progress_cb,
-                )
+            result = _run_review_with_progress(engine, target_path, diff, category_filter)
 
         # Handle GitHub Actions Annotations output
         if github_annotations:

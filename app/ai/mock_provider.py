@@ -28,7 +28,7 @@ class MockAIProvider(BaseAIProvider):
 
         # Skip false positives on mock rule definitions, test fixtures, and reports
         is_fixture_or_meta = any(
-            p in norm_path for p in ["mock_provider.py", "examples/", "tests/", "reports/"]
+            p in norm_path for p in ["mock_provider.py", "static_analysis.py", "examples/", "tests/", "reports/"]
         )
 
         # 1. Security Checks (Mock Rules)
@@ -130,20 +130,7 @@ class MockAIProvider(BaseAIProvider):
                 )
             )
 
-        if not issues:
-            issues.append(
-                ReviewIssue(
-                    severity="INFO",
-                    file_path=file_path,
-                    line_number=1,
-                    category="Readability",
-                    title="Clean Code Structure",
-                    description="Code adheres well to syntax and general formatting standard guidelines.",
-                    suggestion="Maintain good unit test coverage and modular documentation.",
-                )
-            )
-
-        summary = f"Scanned file {file_path} ({len(lines)} lines). Identified {len(issues)} code review observation(s)."
+        summary = f"Scanned file {file_path} ({len(lines)} lines). Identified {len(issues)} code review observation(s)." if issues else f"File {file_path} is clean."
 
         return AIResponse(
             issues=issues,

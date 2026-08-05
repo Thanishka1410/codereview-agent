@@ -152,23 +152,24 @@ class RAGEngine:
 
         chunk_idx = 0
         for line in lines:
-            if line.startswith("#"):
-                if current_lines:
-                    text_block = "\n".join(current_lines).strip()
-                    if text_block:
-                        chunks.append(
-                            DocumentChunk(
-                                chunk_id=f"{relative_path}#{chunk_idx}",
-                                file_path=relative_path,
-                                heading=current_heading,
-                                text=text_block,
-                            )
-                        )
-                        chunk_idx += 1
-                    current_lines = []
-                current_heading = line.lstrip("#").strip()
-            else:
+            if not line.startswith("#"):
                 current_lines.append(line)
+                continue
+
+            if current_lines:
+                text_block = "\n".join(current_lines).strip()
+                if text_block:
+                    chunks.append(
+                        DocumentChunk(
+                            chunk_id=f"{relative_path}#{chunk_idx}",
+                            file_path=relative_path,
+                            heading=current_heading,
+                            text=text_block,
+                        )
+                    )
+                    chunk_idx += 1
+                current_lines = []
+            current_heading = line.lstrip("#").strip()
 
         if current_lines:
             text_block = "\n".join(current_lines).strip()

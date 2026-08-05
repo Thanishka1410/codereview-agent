@@ -1,164 +1,253 @@
 {
-  "docs\\styleguide.md": {
-    "file_path": "docs\\styleguide.md",
-    "sha256": "5cbad1c0d5e66594f093571c7efe6e7096f95c10866b61557217c00850bc838b",
-    "issues": [
-      {
-        "severity": "HIGH",
-        "category": "Security",
-        "file_path": "docs\\styleguide.md",
-        "line_number": 10,
-        "title": "Unsafe Code Execution (eval/exec)",
-        "description": "Dynamic code evaluation using eval() or exec() allows arbitrary code execution.",
-        "suggestion": "Replace eval() with ast.literal_eval() for safe literal evaluation or dictionary lookup.",
-        "code_example": "import ast; value = ast.literal_eval(user_input)",
-        "confidence_score": 0.95,
-        "estimated_fix_minutes": 25
-      },
-      {
-        "severity": "HIGH",
-        "category": "Security",
-        "file_path": "docs\\styleguide.md",
-        "line_number": 9,
-        "title": "Dynamic Code Execution (eval/exec)",
-        "description": "Use of eval() or exec() can allow arbitrary code execution vulnerabilities.",
-        "suggestion": "Replace dynamic code execution with safe dictionary mapping or ast.literal_eval.",
-        "code_example": null,
-        "confidence_score": 0.9,
-        "estimated_fix_minutes": 15
-      }
-    ]
+  "README.md": {
+    "file_path": "README.md",
+    "sha256": "843d44464af7758c9b2886a6fa60b4e935e7d4a7090646c98161393d86ee4f42",
+    "issues": []
   },
-  "sample_script.js": {
-    "file_path": "sample_script.js",
-    "sha256": "c8cfb135d0f59b4223f9808102008b4ff6041dd924d99a5f8bd2d40da6f586a9",
-    "issues": [
-      {
-        "severity": "HIGH",
-        "category": "Security",
-        "file_path": "sample_script.js",
-        "line_number": 12,
-        "title": "Unsafe Code Execution (eval/exec)",
-        "description": "Dynamic code evaluation using eval() or exec() allows arbitrary code execution.",
-        "suggestion": "Replace eval() with ast.literal_eval() for safe literal evaluation or dictionary lookup.",
-        "code_example": "import ast; value = ast.literal_eval(user_input)",
-        "confidence_score": 0.95,
-        "estimated_fix_minutes": 25
-      },
-      {
-        "severity": "HIGH",
-        "category": "Security",
-        "file_path": "sample_script.js",
-        "line_number": 11,
-        "title": "Dynamic Code Execution (eval/exec)",
-        "description": "Use of eval() or exec() can allow arbitrary code execution vulnerabilities.",
-        "suggestion": "Replace dynamic code execution with safe dictionary mapping or ast.literal_eval.",
-        "code_example": null,
-        "confidence_score": 0.9,
-        "estimated_fix_minutes": 15
-      }
-    ]
+  "app\\__init__.py": {
+    "file_path": "app\\__init__.py",
+    "sha256": "cc07d46f58abd9716d16beaf04000b4792186da8ce2e7a315582f7b461f5e1c0",
+    "issues": []
   },
-  "sample_vulnerable.py": {
-    "file_path": "sample_vulnerable.py",
-    "sha256": "d8371e86d4d487f38d9d7ecb8eeac3a1407bb2838b846e9e9b11fb1a07c3aee5",
+  "app\\ai\\__init__.py": {
+    "file_path": "app\\ai\\__init__.py",
+    "sha256": "1595db3604da4dd11d7f03d56627ac9e26d3441f3b9702598c73465f8d767b82",
+    "issues": []
+  },
+  "app\\ai\\base.py": {
+    "file_path": "app\\ai\\base.py",
+    "sha256": "6187ff5cea0fbf413909778410876fab8b53c2e562fd748c0e22de0e61c48fb0",
+    "issues": []
+  },
+  "app\\ai\\claude_provider.py": {
+    "file_path": "app\\ai\\claude_provider.py",
+    "sha256": "46f1b40ea486526b04cc1fd150458e39d26712e3a4c002c48770aed408a419d5",
     "issues": [
-      {
-        "severity": "HIGH",
-        "category": "Security",
-        "file_path": "sample_vulnerable.py",
-        "line_number": 11,
-        "title": "Potential SQL Injection Vulnerability",
-        "description": "String concatenation or f-string interpolation detected inside SQL query string.",
-        "suggestion": "Use parameterized query placeholders or ORM bindings (e.g. cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))).",
-        "code_example": "cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))",
-        "confidence_score": 0.95,
-        "estimated_fix_minutes": 20
-      },
-      {
-        "severity": "HIGH",
-        "category": "Security",
-        "file_path": "sample_vulnerable.py",
-        "line_number": 3,
-        "title": "Hardcoded Credential or API Secret",
-        "description": "Plaintext password, API key, or secret token detected in source code.",
-        "suggestion": "Store secrets in environment variables (os.environ) or an external secret manager.",
-        "code_example": "api_key = os.getenv('API_KEY')",
-        "confidence_score": 0.9,
-        "estimated_fix_minutes": 15
-      },
-      {
-        "severity": "HIGH",
-        "category": "Security",
-        "file_path": "sample_vulnerable.py",
-        "line_number": 20,
-        "title": "Unsafe Code Execution (eval/exec)",
-        "description": "Dynamic code evaluation using eval() or exec() allows arbitrary code execution.",
-        "suggestion": "Replace eval() with ast.literal_eval() for safe literal evaluation or dictionary lookup.",
-        "code_example": "import ast; value = ast.literal_eval(user_input)",
-        "confidence_score": 0.95,
-        "estimated_fix_minutes": 25
-      },
       {
         "severity": "MEDIUM",
         "category": "Quality",
-        "file_path": "sample_vulnerable.py",
-        "line_number": 21,
-        "title": "Silently Swallowed Exception",
-        "description": "Broad exception block with 'pass' hides unexpected errors during execution.",
-        "suggestion": "Catch specific exception types and log error details.",
-        "code_example": "except ValueError as e:\n    logger.error(f'Validation error: {e}')",
-        "confidence_score": 0.9,
-        "estimated_fix_minutes": 15
-      },
-      {
-        "severity": "HIGH",
-        "category": "Security",
-        "file_path": "sample_vulnerable.py",
-        "line_number": 11,
-        "title": "Potential SQL Injection",
-        "description": "String concatenation or interpolation detected in SQL query construction.",
-        "suggestion": "Use parameterized queries or ORM bindings (e.g., cursor.execute('SELECT * FROM users WHERE id = ?', (user_id,))).",
-        "code_example": null,
-        "confidence_score": 0.9,
-        "estimated_fix_minutes": 15
-      },
-      {
-        "severity": "HIGH",
-        "category": "Security",
-        "file_path": "sample_vulnerable.py",
-        "line_number": 3,
-        "title": "Hardcoded Credentials / Secret",
-        "description": "Sensitive secret, API key, or password appears to be hardcoded in source file.",
-        "suggestion": "Move secret to environment variables (`os.getenv(...)`) or external secret manager.",
-        "code_example": null,
-        "confidence_score": 0.9,
-        "estimated_fix_minutes": 15
-      },
-      {
-        "severity": "HIGH",
-        "category": "Security",
-        "file_path": "sample_vulnerable.py",
-        "line_number": 12,
-        "title": "Dynamic Code Execution (eval/exec)",
-        "description": "Use of eval() or exec() can allow arbitrary code execution vulnerabilities.",
-        "suggestion": "Replace dynamic code execution with safe dictionary mapping or ast.literal_eval.",
-        "code_example": null,
-        "confidence_score": 0.9,
-        "estimated_fix_minutes": 15
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "Bug",
-        "file_path": "sample_vulnerable.py",
-        "line_number": 4,
-        "title": "Silently Swallowed Exception",
-        "description": "Broad exception handler with 'pass' hides runtime errors and makes debugging extremely difficult.",
-        "suggestion": "Catch specific exception types and log the exception details properly.",
-        "code_example": null,
-        "confidence_score": 0.9,
-        "estimated_fix_minutes": 15
+        "file_path": "app\\ai\\claude_provider.py",
+        "line_number": 89,
+        "title": "Deep Nesting Level (6 levels)",
+        "description": "Deeply nested code block at line 89 reduces readability and increases cognitive complexity.",
+        "suggestion": "Refactor nested conditionals using guard clauses or break logic into helper functions.",
+        "code_example": "if not condition:\n    return\n# Main logic continues here",
+        "confidence_score": 0.85,
+        "estimated_fix_minutes": 25
       }
     ]
+  },
+  "app\\ai\\factory.py": {
+    "file_path": "app\\ai\\factory.py",
+    "sha256": "f42e4cc8c554dfe59f2682d7c1516d9e62ec42d164610de1babef12bbfb331ac",
+    "issues": []
+  },
+  "app\\ai\\gemini_provider.py": {
+    "file_path": "app\\ai\\gemini_provider.py",
+    "sha256": "093d572bf7b40c75a05f230017431269a261b8d1a9dbae93294e4cd3b33618d9",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "Quality",
+        "file_path": "app\\ai\\gemini_provider.py",
+        "line_number": 86,
+        "title": "Deep Nesting Level (6 levels)",
+        "description": "Deeply nested code block at line 86 reduces readability and increases cognitive complexity.",
+        "suggestion": "Refactor nested conditionals using guard clauses or break logic into helper functions.",
+        "code_example": "if not condition:\n    return\n# Main logic continues here",
+        "confidence_score": 0.85,
+        "estimated_fix_minutes": 25
+      }
+    ]
+  },
+  "app\\ai\\mock_provider.py": {
+    "file_path": "app\\ai\\mock_provider.py",
+    "sha256": "8d66a110af3727c3a77325fa54974a378d6c21b489790d839a6a1acfa9983d27",
+    "issues": []
+  },
+  "app\\ai\\openai_provider.py": {
+    "file_path": "app\\ai\\openai_provider.py",
+    "sha256": "6d650b07347849b27eff91837f1c038fee58f067cd53ab4f187aa966841ca8f5",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "Quality",
+        "file_path": "app\\ai\\openai_provider.py",
+        "line_number": 100,
+        "title": "Deep Nesting Level (6 levels)",
+        "description": "Deeply nested code block at line 100 reduces readability and increases cognitive complexity.",
+        "suggestion": "Refactor nested conditionals using guard clauses or break logic into helper functions.",
+        "code_example": "if not condition:\n    return\n# Main logic continues here",
+        "confidence_score": 0.85,
+        "estimated_fix_minutes": 25
+      }
+    ]
+  },
+  "app\\cache.py": {
+    "file_path": "app\\cache.py",
+    "sha256": "8f7a69143a5605905c0d266140d2d80cc7dff2be6bbf7444fb158a5976c07468",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "Quality",
+        "file_path": "app\\cache.py",
+        "line_number": 41,
+        "title": "Deep Nesting Level (6 levels)",
+        "description": "Deeply nested code block at line 41 reduces readability and increases cognitive complexity.",
+        "suggestion": "Refactor nested conditionals using guard clauses or break logic into helper functions.",
+        "code_example": "if not condition:\n    return\n# Main logic continues here",
+        "confidence_score": 0.85,
+        "estimated_fix_minutes": 25
+      }
+    ]
+  },
+  "app\\cli.py": {
+    "file_path": "app\\cli.py",
+    "sha256": "b3a05ec70614b4047e75e01e3f42f1a4a8c53e7a7dd8116bb5e5ca1d68d601c3",
+    "issues": []
+  },
+  "app\\config.py": {
+    "file_path": "app\\config.py",
+    "sha256": "8063c13d59a5c85d426dce80773037e4e3249b905d23aeddd613e07a7f3362ad",
+    "issues": []
+  },
+  "app\\context.py": {
+    "file_path": "app\\context.py",
+    "sha256": "dc3e8bbfebd753bb2b3ba4d8bc2dc71eac63d1b78ae6428733d47bc8ada6c14b",
+    "issues": []
+  },
+  "app\\formatter.py": {
+    "file_path": "app\\formatter.py",
+    "sha256": "302547163091f5adccfbbbd907b11632c7db860810d2c37123aa58e984188f2e",
+    "issues": []
+  },
+  "app\\github.py": {
+    "file_path": "app\\github.py",
+    "sha256": "da7d7743658638e7cb8e922706392cd6213563841179082f154c03092f518c38",
+    "issues": []
+  },
+  "app\\prompts.py": {
+    "file_path": "app\\prompts.py",
+    "sha256": "6df2858111f04a34fe05544c44b721a4d8dbd63db1a19f5fd6bc6557d0caaf10",
+    "issues": []
+  },
+  "app\\rag.py": {
+    "file_path": "app\\rag.py",
+    "sha256": "5e5f3153e026f1482c443e5c329f9749af0c22901ffeec49357ca72829864aac",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "Quality",
+        "file_path": "app\\rag.py",
+        "line_number": 163,
+        "title": "Deep Nesting Level (6 levels)",
+        "description": "Deeply nested code block at line 163 reduces readability and increases cognitive complexity.",
+        "suggestion": "Refactor nested conditionals using guard clauses or break logic into helper functions.",
+        "code_example": "if not condition:\n    return\n# Main logic continues here",
+        "confidence_score": 0.85,
+        "estimated_fix_minutes": 25
+      }
+    ]
+  },
+  "app\\report.py": {
+    "file_path": "app\\report.py",
+    "sha256": "83e0bdf1f015dcb295d09fcf2091f46b6ed940866293a6ed7ecbd327a356b4a0",
+    "issues": []
+  },
+  "app\\reviewer.py": {
+    "file_path": "app\\reviewer.py",
+    "sha256": "4c8165e4914e8bc0c6e46e04d08e327def4482d8c63ddde204143b902d2d09f1",
+    "issues": []
+  },
+  "app\\scanner.py": {
+    "file_path": "app\\scanner.py",
+    "sha256": "edf739676f321d454e407faf174063864627b1cc6800355bb04ee2e7884cd48f",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "Quality",
+        "file_path": "app\\scanner.py",
+        "line_number": 236,
+        "title": "Deep Nesting Level (6 levels)",
+        "description": "Deeply nested code block at line 236 reduces readability and increases cognitive complexity.",
+        "suggestion": "Refactor nested conditionals using guard clauses or break logic into helper functions.",
+        "code_example": "if not condition:\n    return\n# Main logic continues here",
+        "confidence_score": 0.85,
+        "estimated_fix_minutes": 25
+      }
+    ]
+  },
+  "app\\static_analysis.py": {
+    "file_path": "app\\static_analysis.py",
+    "sha256": "e7fe1d4386576e442e0f00892b62cac21e2933a87c4a5fd3a0529fad8996d30c",
+    "issues": []
+  },
+  "app\\templates.py": {
+    "file_path": "app\\templates.py",
+    "sha256": "f3094fbc9692147250fffd8cbf6058b36a72315af7e91e1b12cf71c17e01b1f8",
+    "issues": []
+  },
+  "app\\utils.py": {
+    "file_path": "app\\utils.py",
+    "sha256": "e5129ad3a00fcdbb0f73a611447b75e24f8b76e41718a92a63cd26477524f835",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "Performance",
+        "file_path": "app\\utils.py",
+        "line_number": 38,
+        "title": "Nested Loop Detected (O(n\u00b2) Complexity)",
+        "description": "Nested loop can significantly degrade runtime performance on large datasets.",
+        "suggestion": "Use set lookups, dictionary mapping, or vectorized operations to reduce quadratic complexity to O(n).",
+        "code_example": "lookup_set = set(list_b)\nresult = [item for item in list_a if item in lookup_set]",
+        "confidence_score": 0.85,
+        "estimated_fix_minutes": 30
+      }
+    ]
+  },
+  "examples\\sample_project\\docs\\styleguide.md": {
+    "file_path": "examples\\sample_project\\docs\\styleguide.md",
+    "sha256": "5cbad1c0d5e66594f093571c7efe6e7096f95c10866b61557217c00850bc838b",
+    "issues": []
+  },
+  "examples\\sample_project\\sample_script.js": {
+    "file_path": "examples\\sample_project\\sample_script.js",
+    "sha256": "c8cfb135d0f59b4223f9808102008b4ff6041dd924d99a5f8bd2d40da6f586a9",
+    "issues": []
+  },
+  "examples\\sample_project\\sample_vulnerable.py": {
+    "file_path": "examples\\sample_project\\sample_vulnerable.py",
+    "sha256": "d8371e86d4d487f38d9d7ecb8eeac3a1407bb2838b846e9e9b11fb1a07c3aee5",
+    "issues": []
+  },
+  "tests\\test_cache.py": {
+    "file_path": "tests\\test_cache.py",
+    "sha256": "2d827b1fde390b7a2aed9f7faf04e37e587de37107d5572c7342739e8aca247d",
+    "issues": []
+  },
+  "tests\\test_context.py": {
+    "file_path": "tests\\test_context.py",
+    "sha256": "04b0fa35986b9b8300946661d4eeae8a499dc6cf5a271594d9f4300f3e6b97ce",
+    "issues": []
+  },
+  "tests\\test_github.py": {
+    "file_path": "tests\\test_github.py",
+    "sha256": "315b7667cdd7d338fad4b2542e20d69fddde9724c3e39d6301cdf150b4976fac",
+    "issues": []
+  },
+  "tests\\test_rag.py": {
+    "file_path": "tests\\test_rag.py",
+    "sha256": "f49cabcf068f8ceb2218b2f0bf8d161a945aaa4a8efa181c20d578ebc766bf3a",
+    "issues": []
+  },
+  "tests\\test_static_analysis.py": {
+    "file_path": "tests\\test_static_analysis.py",
+    "sha256": "a6042df3d55abfea935423046b0844f13ff0f8491aa104a0bf7894e49be1c711",
+    "issues": []
+  },
+  "tests\\test_suite.py": {
+    "file_path": "tests\\test_suite.py",
+    "sha256": "1d8ed99e633dd611f333e78e73320b22580d3d976a48f6ef74314f378c4df083",
+    "issues": []
   }
 }

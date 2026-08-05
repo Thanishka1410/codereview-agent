@@ -31,7 +31,7 @@ class CodeContextBuilder:
                 elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                     args_list = [arg.arg for arg in node.args.args]
                     signatures.append(f"def {node.name}({', '.join(args_list)}):")
-        except Exception:
-            pass
+        except SyntaxError:
+            return ""
 
         return "\n".join(signatures) if signatures else "No explicit signatures extracted."

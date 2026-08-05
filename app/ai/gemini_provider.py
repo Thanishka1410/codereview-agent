@@ -1,7 +1,7 @@
 import json
 from typing import List, Optional
 import requests
-from app.ai.base import BaseAIProvider, AIResponse, ReviewIssue, repair_json_text
+from app.ai.base import BaseAIProvider, AIResponse, ReviewIssue, repair_json_text, build_review_issue_from_dict
 from app.prompts import SYSTEM_PROMPT, GENERAL_REVIEW_PROMPT, SECURITY_REVIEW_PROMPT, PERFORMANCE_REVIEW_PROMPT
 
 
@@ -70,22 +70,7 @@ class GeminiProvider(BaseAIProvider):
             issues_data = parsed.get("issues", [])
             summary = parsed.get("summary", "Review complete.")
 
-            issues: List[ReviewIssue] = []
-            for item in issues_data:
-                issues.append(
-                    ReviewIssue(
-                        severity=str(item.get("severity", "MEDIUM")).upper(),
-                        category=item.get("category", "General"),
-                        file_path=item.get("file_path", file_path),
-                        line_number=item.get("line_number"),
-                        title=item.get("title", "Review Finding"),
-                        description=item.get("description", ""),
-                        suggestion=item.get("suggestion", ""),
-                        code_example=item.get("code_example"),
-                        confidence_score=float(item.get("confidence_score", 0.9)),
-                        estimated_fix_minutes=int(item.get("estimated_fix_minutes", 15)),
-                    )
-                )
+            issues: List[ReviewIssue] = [build_review_issue_from_dict(item, file_path) for item in issues_data]
 
             return AIResponse(
                 issues=issues,

@@ -32,10 +32,13 @@ class GitInfo(BaseModel):
 
 
 def calculate_python_complexity(node: ast.AST) -> int:
-    """Calculate Cyclomatic Complexity for Python AST node."""
-    complexity = 1
+    """Calculate average Cyclomatic Complexity per function for Python AST node."""
+    decisions = 1
+    fn_count = 0
     for child in ast.walk(node):
-        if isinstance(
+        if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            fn_count += 1
+        elif isinstance(
             child,
             (
                 ast.If,
@@ -48,12 +51,39 @@ def calculate_python_complexity(node: ast.AST) -> int:
                 ast.Assert,
             ),
         ):
-            complexity += 1
+            decisions += 1
         elif isinstance(child, ast.BoolOp):
-            complexity += len(child.values) - 1
+            decisions += len(child.values) - 1
         elif isinstance(child, ast.IfExp):
-            complexity += 1
-    return complexity
+            decisions += 1
+    return max(1, round(decisions / max(1, fn_count)))
+
+
+def _process_ast_node(node: ast.AST, imports: List[str], functions: List[str], methods: List[str], classes: List[str], decorators: List[str], global_vars: List[str]):
+    """Process individual AST node to extract structural code metrics."""
+    if isinstance(node, ast.Import):
+        for alias in node.names:
+            imports.append(alias.name)
+    elif isinstance(node, ast.ImportFrom):
+        module = node.module or ""
+        for alias in node.names:
+            imports.append(f"{module}.{alias.name}" if module else alias.name)
+    elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+        functions.append(node.name)
+        for dec in node.decorator_list:
+            if isinstance(dec, ast.Name):
+                decorators.append(dec.id)
+            elif isinstance(dec, ast.Call) and isinstance(dec.func, ast.Name):
+                decorators.append(dec.func.id)
+    elif isinstance(node, ast.ClassDef):
+        classes.append(node.name)
+        for item in node.body:
+            if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                methods.append(f"{node.name}.{item.name}")
+    elif isinstance(node, ast.Assign):
+        for target in node.targets:
+            if isinstance(target, ast.Name) and (target.id.isupper() or target.id.startswith("GLOBAL_")):
+                global_vars.append(target.id)
 
 
 def analyze_python_file(file_path: Path, relative_path: str, code: str) -> FileStructureMetrics:
@@ -74,30 +104,7 @@ def analyze_python_file(file_path: Path, relative_path: str, code: str) -> FileS
         has_docstring = doc is not None and len(doc.strip()) > 0
 
         for node in ast.walk(tree):
-            if isinstance(node, ast.Import):
-                for alias in node.names:
-                    imports.append(alias.name)
-            elif isinstance(node, ast.ImportFrom):
-                module = node.module or ""
-                for alias in node.names:
-                    imports.append(f"{module}.{alias.name}" if module else alias.name)
-            elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                functions.append(node.name)
-                for dec in node.decorator_list:
-                    if isinstance(dec, ast.Name):
-                        decorators.append(dec.id)
-                    elif isinstance(dec, ast.Call) and isinstance(dec.func, ast.Name):
-                        decorators.append(dec.func.id)
-            elif isinstance(node, ast.ClassDef):
-                classes.append(node.name)
-                for item in node.body:
-                    if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                        methods.append(f"{node.name}.{item.name}")
-            elif isinstance(node, ast.Assign):
-                for target in node.targets:
-                    if isinstance(target, ast.Name):
-                        if target.id.isupper() or target.id.startswith("GLOBAL_"):
-                            global_vars.append(target.id)
+            _process_ast_node(node, imports, functions, methods, classes, decorators, global_vars)
 
     except SyntaxError:
         imports, functions, classes, complexity = fallback_regex_analysis(code)
@@ -126,16 +133,9 @@ def fallback_regex_analysis(code: str) -> tuple[List[str], List[str], List[str],
     functions: List[str] = []
     classes: List[str] = []
 
-    import_patterns = [
-        r'import\s+.*?;',
-        r'from\s+[\w\.]+\s+import',
-        r'require\s*\([\'"]([^\'"]+)[\'"]\)',
-        r'#include\s+[<"]([^>"]+)[>"]',
-        r'use\s+[\w\\:]+;'
-    ]
-    for pattern in import_patterns:
-        for match in re.finditer(pattern, code):
-            imports.add(match.group(0).strip())
+    combined_imports = re.compile(r'(?:import\s+.*?;|from\s+[\w\.]+\s+import|require\s*\([\'"][^\'"]+[\'"]\)|#include\s+[<"][^>"]+[>"]|use\s+[\w\\:]+;)')
+    for match in combined_imports.finditer(code):
+        imports.add(match.group(0).strip())
 
     func_patterns = [
         r'\bdef\s+([a-zA-Z_]\w*)\s*\(',

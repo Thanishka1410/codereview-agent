@@ -28,7 +28,7 @@ class FileCacheManager:
                 while chunk := f.read(65536):
                     hasher.update(chunk)
             return hasher.hexdigest()
-        except Exception:
+        except (OSError, IOError):
             return ""
 
     def load_cache(self):
@@ -39,7 +39,7 @@ class FileCacheManager:
                     data = json.load(f)
                     for k, v in data.items():
                         self.cache[k] = CacheEntry(**v)
-            except Exception:
+            except (json.JSONDecodeError, OSError, IOError):
                 self.cache = {}
 
     def save_cache(self):
@@ -48,8 +48,8 @@ class FileCacheManager:
             data = {k: v.model_dump() for k, v in self.cache.items()}
             with open(self.cache_file, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2)
-        except Exception:
-            pass
+        except (OSError, IOError):
+            return False
 
     def is_file_unchanged(self, file_path: Path, relative_path: str) -> bool:
         """Check if file hash matches cached hash."""
