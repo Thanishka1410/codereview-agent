@@ -22,7 +22,7 @@ class ReviewConfig(BaseModel):
     ignored_folders: List[str] = Field(
         default_factory=lambda: [
             ".git", "venv", ".venv", "node_modules", "dist", "build",
-            "__pycache__", ".pytest_cache", ".egg-info", ".idea", ".vscode"
+            "__pycache__", ".pytest_cache", ".egg-info", ".idea", ".vscode", "reports"
         ]
     )
     ignored_files: List[str] = Field(

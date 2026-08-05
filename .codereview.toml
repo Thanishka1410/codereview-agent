@@ -15,7 +15,8 @@ ignored_folders = [
     "build",
     "__pycache__",
     ".pytest_cache",
-    ".egg-info"
+    ".egg-info",
+    "reports"
 ]
 ignored_files = [
     "package-lock.json",

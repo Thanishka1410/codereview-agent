@@ -143,7 +143,7 @@ class RAGEngine:
         chunks: List[DocumentChunk] = []
         try:
             content = file_path.read_text(encoding="utf-8", errors="replace")
-        except Exception:
+        except (OSError, UnicodeDecodeError):
             return chunks
 
         lines = content.splitlines()

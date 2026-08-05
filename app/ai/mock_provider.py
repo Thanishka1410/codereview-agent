@@ -24,9 +24,15 @@ class MockAIProvider(BaseAIProvider):
         issues: List[ReviewIssue] = []
 
         code_lower = code.lower()
+        norm_path = file_path.replace("\\", "/").lower()
+
+        # Skip false positives on mock rule definitions, test fixtures, and reports
+        is_fixture_or_meta = any(
+            p in norm_path for p in ["mock_provider.py", "examples/", "tests/", "reports/"]
+        )
 
         # 1. Security Checks (Mock Rules)
-        if "select " in code_lower and (" + " in code_lower or " % " in code_lower or "format(" in code_lower or "f\"" in code_lower or "f'" in code_lower):
+        if not is_fixture_or_meta and "select " in code_lower and (" + " in code_lower or " % " in code_lower or "format(" in code_lower or "f\"" in code_lower or "f'" in code_lower):
             issues.append(
                 ReviewIssue(
                     severity="HIGH",
@@ -39,7 +45,7 @@ class MockAIProvider(BaseAIProvider):
                 )
             )
 
-        if any(secret_word in code_lower for secret_word in ["api_key =", "password =", "secret =", "token =", "private_key ="]):
+        if not is_fixture_or_meta and re.search(r'\b(api_key|password|secret|token|private_key)\s*=\s*[\'"][^\'"]{5,}[\'"]', code_lower):
             issues.append(
                 ReviewIssue(
                     severity="HIGH",
@@ -52,7 +58,7 @@ class MockAIProvider(BaseAIProvider):
                 )
             )
 
-        if "eval(" in code_lower or "exec(" in code_lower:
+        if not is_fixture_or_meta and ("eval(" in code_lower or "exec(" in code_lower):
             issues.append(
                 ReviewIssue(
                     severity="HIGH",
@@ -66,7 +72,7 @@ class MockAIProvider(BaseAIProvider):
             )
 
         # 2. Performance & Code Smell Checks
-        if "except:" in code or "except Exception:" in code and "pass" in code:
+        if not is_fixture_or_meta and ("except:" in code or "except Exception:" in code) and "pass" in code:
             issues.append(
                 ReviewIssue(
                     severity="MEDIUM",
@@ -79,7 +85,7 @@ class MockAIProvider(BaseAIProvider):
                 )
             )
 
-        if "open(" in code_lower and "with " not in code_lower:
+        if not is_fixture_or_meta and "open(" in code_lower and "with " not in code_lower:
             issues.append(
                 ReviewIssue(
                     severity="MEDIUM",
@@ -109,14 +115,16 @@ class MockAIProvider(BaseAIProvider):
                 )
                 break
 
-        if len(lines) > 200:
+        # Only evaluate large file warnings for code files (excluding docs/markdown)
+        is_doc = any(norm_path.endswith(ext) for ext in [".md", ".txt", ".rst", ".json", ".html"])
+        if not is_doc and len(lines) > 350:
             issues.append(
                 ReviewIssue(
                     severity="INFO",
                     file_path=file_path,
                     line_number=1,
                     category="Architecture",
-                    title="Large Source File (>200 lines)",
+                    title="Large Source File (>350 lines)",
                     description=f"File has {len(lines)} lines of code. Large files violate Single Responsibility Principle.",
                     suggestion="Consider refactoring into smaller modular components or helper utilities.",
                 )

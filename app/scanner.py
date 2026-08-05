@@ -95,7 +95,8 @@ class Scanner:
                 if part in self.ignored_folders:
                     return True
         except ValueError:
-            pass
+            # Path is not relative to root
+            return False
 
         return False
 
