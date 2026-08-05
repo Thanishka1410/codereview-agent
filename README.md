@@ -2,7 +2,7 @@
 
 > **Production-Grade AI-Powered Code Review & Static Analysis CLI Tool**
 
-[![Build Status](https://github.com/Thanishka1410/codereview-agent/workflows/CodeReview%20Agent%20CI/badge.svg)](https://github.com/Thanishka1410/codereview-agent/actions)
+[![Build Status](https://github.com/Thanishka1410/codereview-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/Thanishka1410/codereview-agent/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue.svg)](pyproject.toml)
 
