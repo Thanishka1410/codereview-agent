@@ -12,7 +12,11 @@ class FileStructureMetrics(BaseModel):
     language: str
     imports: List[str]
     functions: List[str]
+    methods: List[str]
     classes: List[str]
+    decorators: List[str]
+    global_vars: List[str]
+    has_docstring: bool
     loc: int
     complexity: int
     code_content: str
@@ -24,13 +28,11 @@ class GitInfo(BaseModel):
     current_branch: Optional[str] = None
     modified_files: List[str] = []
     staged_files: List[str] = []
+    changed_lines: Dict[str, List[int]] = {}
 
 
 def calculate_python_complexity(node: ast.AST) -> int:
-    """
-    Calculate Cyclomatic Complexity for Python AST node.
-    Base complexity is 1 + 1 for each decision point (if, for, while, except, with, assert, boolean op).
-    """
+    """Calculate Cyclomatic Complexity for Python AST node."""
     complexity = 1
     for child in ast.walk(node):
         if isinstance(
@@ -55,15 +57,21 @@ def calculate_python_complexity(node: ast.AST) -> int:
 
 
 def analyze_python_file(file_path: Path, relative_path: str, code: str) -> FileStructureMetrics:
-    """Analyze Python file using standard ast module."""
+    """Analyze Python file using ast module."""
     imports: List[str] = []
     functions: List[str] = []
+    methods: List[str] = []
     classes: List[str] = []
+    decorators: List[str] = []
+    global_vars: List[str] = []
+    has_docstring = False
     complexity = 1
 
     try:
         tree = ast.parse(code, filename=str(file_path))
         complexity = calculate_python_complexity(tree)
+        doc = ast.get_docstring(tree)
+        has_docstring = doc is not None and len(doc.strip()) > 0
 
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):
@@ -75,11 +83,23 @@ def analyze_python_file(file_path: Path, relative_path: str, code: str) -> FileS
                     imports.append(f"{module}.{alias.name}" if module else alias.name)
             elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 functions.append(node.name)
+                for dec in node.decorator_list:
+                    if isinstance(dec, ast.Name):
+                        decorators.append(dec.id)
+                    elif isinstance(dec, ast.Call) and isinstance(dec.func, ast.Name):
+                        decorators.append(dec.func.id)
             elif isinstance(node, ast.ClassDef):
                 classes.append(node.name)
+                for item in node.body:
+                    if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                        methods.append(f"{node.name}.{item.name}")
+            elif isinstance(node, ast.Assign):
+                for target in node.targets:
+                    if isinstance(target, ast.Name):
+                        if target.id.isupper() or target.id.startswith("GLOBAL_"):
+                            global_vars.append(target.id)
 
     except SyntaxError:
-        # Fallback to regex if syntax error (e.g. partial file or non-standard syntax)
         imports, functions, classes, complexity = fallback_regex_analysis(code)
 
     loc = len([line for line in code.splitlines() if line.strip() and not line.strip().startswith("#")])
@@ -89,7 +109,11 @@ def analyze_python_file(file_path: Path, relative_path: str, code: str) -> FileS
         language="python",
         imports=sorted(list(set(imports))),
         functions=functions,
+        methods=methods,
         classes=classes,
+        decorators=sorted(list(set(decorators))),
+        global_vars=sorted(list(set(global_vars))),
+        has_docstring=has_docstring,
         loc=loc,
         complexity=complexity,
         code_content=code,
@@ -97,12 +121,11 @@ def analyze_python_file(file_path: Path, relative_path: str, code: str) -> FileS
 
 
 def fallback_regex_analysis(code: str) -> tuple[List[str], List[str], List[str], int]:
-    """Extract metrics for non-Python files or files with syntax errors using regex patterns."""
+    """Extract metrics for non-Python files using regex patterns."""
     imports: Set[str] = set()
     functions: List[str] = []
     classes: List[str] = []
 
-    # Detect imports/requires/includes
     import_patterns = [
         r'import\s+.*?;',
         r'from\s+[\w\.]+\s+import',
@@ -114,13 +137,13 @@ def fallback_regex_analysis(code: str) -> tuple[List[str], List[str], List[str],
         for match in re.finditer(pattern, code):
             imports.add(match.group(0).strip())
 
-    # Detect functions/methods
     func_patterns = [
         r'\bdef\s+([a-zA-Z_]\w*)\s*\(',
         r'\bfunction\s+([a-zA-Z_]\w*)\s*\(',
         r'\bconst\s+([a-zA-Z_]\w*)\s*=\s*\([^)]*\)\s*=>',
         r'\b([a-zA-Z_]\w*)\s*\([^)]*\)\s*\{',
         r'\bfn\s+([a-zA-Z_]\w*)\s*\(',
+        r'\bfunc\s+([a-zA-Z_]\w*)\s*\(',
     ]
     for pattern in func_patterns:
         for match in re.finditer(pattern, code):
@@ -128,7 +151,6 @@ def fallback_regex_analysis(code: str) -> tuple[List[str], List[str], List[str],
             if fn_name not in ("if", "for", "while", "switch", "catch"):
                 functions.append(fn_name)
 
-    # Detect classes/structs/interfaces
     class_patterns = [
         r'\bclass\s+([a-zA-Z_]\w*)',
         r'\bstruct\s+([a-zA-Z_]\w*)',
@@ -139,7 +161,6 @@ def fallback_regex_analysis(code: str) -> tuple[List[str], List[str], List[str],
         for match in re.finditer(pattern, code):
             classes.append(match.group(1))
 
-    # Rough decision points for complexity
     decision_keywords = len(re.findall(r'\b(if|else if|for|while|case|catch|\&\&|\|\|)\b', code))
     complexity = max(1, 1 + decision_keywords)
 
@@ -165,7 +186,11 @@ def analyze_file_structure(file_path: Path, relative_path: str, language: str) -
         language=language,
         imports=imports,
         functions=functions,
+        methods=[],
         classes=classes,
+        decorators=[],
+        global_vars=[],
+        has_docstring=False,
         loc=loc,
         complexity=complexity,
         code_content=code,
@@ -176,7 +201,6 @@ def get_git_info(cwd: Optional[Path] = None) -> GitInfo:
     """Retrieve git branch and modified files status."""
     working_dir = str(cwd) if cwd else "."
     try:
-        # Check if inside git repo
         is_git = subprocess.run(
             ["git", "rev-parse", "--is-inside-work-tree"],
             cwd=working_dir,
@@ -188,7 +212,6 @@ def get_git_info(cwd: Optional[Path] = None) -> GitInfo:
         if is_git.returncode != 0:
             return GitInfo(is_git_repo=False)
 
-        # Get current branch
         branch_proc = subprocess.run(
             ["git", "branch", "--show-current"],
             cwd=working_dir,
@@ -199,7 +222,6 @@ def get_git_info(cwd: Optional[Path] = None) -> GitInfo:
         )
         branch = branch_proc.stdout.strip() or "HEAD"
 
-        # Get modified files (unstaged + staged)
         status_proc = subprocess.run(
             ["git", "status", "--porcelain"],
             cwd=working_dir,
@@ -226,6 +248,7 @@ def get_git_info(cwd: Optional[Path] = None) -> GitInfo:
             current_branch=branch,
             modified_files=list(set(modified)),
             staged_files=list(set(staged)),
+            changed_lines={},
         )
 
     except Exception:

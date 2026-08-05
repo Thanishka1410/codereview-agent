@@ -10,8 +10,10 @@ from app.ai.base import ReviewIssue
 console = Console()
 
 
-def print_banner():
-    """Print ASCII Art Header Banner for CodeReview Agent."""
+def print_banner(quiet: bool = False):
+    """Print ASCII Art Header Banner for CodeReview Agent unless in quiet mode."""
+    if quiet:
+        return
     banner_text = """[bold cyan]
    ______          __      ____  ___ _   _  _____ _    _  
   / ____/___  ____/ /___  / __ \/ (_) | / /|  ___| |  | | 
@@ -23,8 +25,10 @@ def print_banner():
     console.print(banner_text)
 
 
-def print_scan_summary(scan_result):
+def print_scan_summary(scan_result, quiet: bool = False):
     """Display project scan summary table."""
+    if quiet:
+        return
     table = Table(title="Project Scan Summary", show_header=True, header_style="bold magenta")
     table.add_column("Metric", style="cyan")
     table.add_column("Value", style="bold green")
@@ -38,8 +42,10 @@ def print_scan_summary(scan_result):
     console.print(table)
 
 
-def print_issues(issues: list[ReviewIssue], verbose: bool = False):
+def print_issues(issues: list[ReviewIssue], quiet: bool = False, verbose: bool = False):
     """Print formatted code review issues grouped by severity."""
+    if quiet:
+        return
     if not issues:
         console.print("\n[bold green]✓ No code issues found! Codebase looks clean.[/bold green]\n")
         return
@@ -60,7 +66,15 @@ def print_issues(issues: list[ReviewIssue], verbose: bool = False):
 
         title_text = f"{badge} [bold white]{issue.file_path}{line_str}[/bold white] - [cyan]{issue.title}[/cyan]"
 
-        body_content = f"[bold]Category:[/bold] {issue.category}\n[bold]Problem:[/bold] {issue.description}\n\n[bold green]Suggestion:[/bold green]\n{issue.suggestion}"
+        fix_info = f"\n[dim]Estimated Fix Time: ~{issue.estimated_fix_minutes}m | Confidence: {issue.confidence_score*100:.0f}%[/dim]"
+        code_ex = f"\n\n[bold green]Suggested Code Example:[/bold green]\n[dim]{issue.code_example}[/dim]" if issue.code_example else ""
+
+        body_content = (
+            f"[bold]Category:[/bold] {issue.category}\n"
+            f"[bold]Problem:[/bold] {issue.description}\n\n"
+            f"[bold green]Actionable Suggestion:[/bold green]\n{issue.suggestion}"
+            f"{code_ex}{fix_info}"
+        )
 
         panel = Panel(
             body_content,
@@ -72,36 +86,42 @@ def print_issues(issues: list[ReviewIssue], verbose: bool = False):
         console.print(panel)
 
 
-def print_scores(scores: HealthScores):
+def print_scores(scores: HealthScores, quiet: bool = False):
     """Display overall health score card and sub-metrics."""
+    if quiet:
+        return
     overall = scores.overall_score
     color = "bold green" if overall >= 8.0 else ("bold yellow" if overall >= 6.0 else "bold red")
 
     score_panel = Panel(
-        f"[{color}][size=20]Overall Health Score: {overall} / 10.0[/size][/{color}]\n"
+        f"[{color}][size=20]Weighted Overall Health Score: {overall} / 10.0[/size][/{color}]\n"
         f"[dim]Target Threshold: 8.5 / 10.0[/dim]",
-        title="[bold yellow]Project Quality Assessment[/bold yellow]",
+        title="[bold yellow]Project Quality & Security Assessment[/bold yellow]",
         border_style="magenta",
         expand=False,
     )
     console.print("\n", score_panel)
 
-    table = Table(title="Sub-Scores & Code Metrics", show_header=True, header_style="bold blue")
+    table = Table(title="Sub-Scores & Weighted Metrics", show_header=True, header_style="bold blue")
     table.add_column("Category", style="cyan")
     table.add_column("Score / Metric", style="bold white")
 
-    table.add_row("Security Score", f"{scores.security_score} / 10.0")
-    table.add_row("Code Quality Score", f"{scores.code_quality_score} / 10.0")
-    table.add_row("Maintainability Score", f"{scores.maintainability_score} / 10.0")
-    table.add_row("Performance Score", f"{scores.performance_score} / 10.0")
+    table.add_row("Security Score (40%)", f"{scores.security_score} / 10.0")
+    table.add_row("Maintainability Score (25%)", f"{scores.maintainability_score} / 10.0")
+    table.add_row("Code Quality Score (15%)", f"{scores.code_quality_score} / 10.0")
+    table.add_row("Performance Score (10%)", f"{scores.performance_score} / 10.0")
+    table.add_row("Documentation Score (5%)", f"{scores.documentation_score} / 10.0")
     table.add_row("Avg Cyclomatic Complexity", f"{scores.average_cyclomatic_complexity}")
     table.add_row("Est. Technical Debt", f"{scores.estimated_technical_debt_hours} Hours")
 
     console.print(table)
 
 
-def print_review_complete_summary(result: ProjectReviewResult):
+def print_review_complete_summary(result: ProjectReviewResult, quiet: bool = False):
     """Print clean terminal completion block."""
+    if quiet:
+        console.print(f"Score: {result.scores.overall_score}/10.0 | Issues: {len(result.issues)} (HIGH: {result.high_severity_count})")
+        return
     color = "green" if result.high_severity_count == 0 else "red"
     summary_text = (
         f"[{color}]Review Completed![/{color}]\n"

@@ -7,16 +7,20 @@ from app.scanner import Scanner, ProjectScanResult, ScannedFile
 from app.utils import analyze_file_structure, FileStructureMetrics, get_git_info, GitInfo
 from app.ai.base import ReviewIssue, AIResponse, BaseAIProvider
 from app.ai.factory import get_ai_provider
+from app.static_analysis import StaticAnalyzer
+from app.cache import FileCacheManager
 from app.rag import RAGEngine
 
 
 class HealthScores(BaseModel):
     """Calculated sub-scores and metrics for project health assessment."""
-    overall_score: float = Field(description="Overall Project Score (0.0 to 10.0)")
-    maintainability_score: float = Field(description="Maintainability Score (0.0 to 10.0)")
-    security_score: float = Field(description="Security Score (0.0 to 10.0)")
-    performance_score: float = Field(description="Performance Score (0.0 to 10.0)")
-    code_quality_score: float = Field(description="Code Quality Score (0.0 to 10.0)")
+    overall_score: float = Field(description="Weighted Overall Project Score (0.0 to 10.0)")
+    security_score: float = Field(description="Security Score (40% weight)")
+    maintainability_score: float = Field(description="Maintainability Score (25% weight)")
+    performance_score: float = Field(description="Performance Score (15% weight)")
+    code_quality_score: float = Field(description="Code Quality Score (10% weight)")
+    documentation_score: float = Field(description="Documentation Score (5% weight)")
+    testing_score: float = Field(description="Testing Score (5% weight)")
     estimated_technical_debt_hours: float = Field(description="Estimated debt remediation time in hours")
     average_cyclomatic_complexity: float = Field(description="Average cyclomatic complexity")
 
@@ -50,12 +54,15 @@ class ReviewerEngine:
             language_filter=self.config.language,
         )
         self.ai_provider: BaseAIProvider = get_ai_provider(self.config)
+        self.static_analyzer = StaticAnalyzer()
+        self.cache_manager = FileCacheManager()
         self.rag_engine = RAGEngine()
 
     def run_review(
         self,
         target_path: str | Path = ".",
         diff_only: bool = False,
+        category_filter: Optional[str] = None,
         progress_callback=None,
     ) -> ProjectReviewResult:
         """Run complete code review workflow on target path."""
@@ -78,7 +85,6 @@ class ReviewerEngine:
                 if any(f.relative_path.endswith(chg) or chg.endswith(f.relative_path) for chg in changed_set)
             ]
             if not files_to_review:
-                # If no matches found, default back to scanned files with a warning
                 files_to_review = scan_result.files
 
         file_metrics_list: List[FileStructureMetrics] = []
@@ -97,24 +103,61 @@ class ReviewerEngine:
             )
             file_metrics_list.append(metrics)
 
-            # 2. AI Review
-            rag_context = ""
-            if self.rag_engine.is_indexed:
-                rag_context = self.rag_engine.retrieve_context(metrics.code_content)
+            file_issues: List[ReviewIssue] = []
 
-            prompt_type = "rag" if rag_context else "general"
+            # 2. Check File Cache
+            if self.cache_manager.is_file_unchanged(scanned_file.path, scanned_file.relative_path):
+                cached_data = self.cache_manager.get_cached_issues(scanned_file.relative_path)
+                file_issues = [ReviewIssue(**item) for item in cached_data]
+            else:
+                # 3. Rule-Based Static Analysis Checks
+                static_issues = self.static_analyzer.analyze_file(
+                    scanned_file.path, scanned_file.relative_path, metrics.code_content, scanned_file.language
+                )
+                file_issues.extend(static_issues)
 
-            ai_response: AIResponse = self.ai_provider.review_code(
-                file_path=scanned_file.relative_path,
-                code=metrics.code_content,
-                language=scanned_file.language,
-                prompt_type=prompt_type,
-                functions=metrics.functions,
-                classes=metrics.classes,
-            )
+                # 4. AI Provider Review
+                rag_context = ""
+                if self.rag_engine.is_indexed:
+                    rag_context = self.rag_engine.retrieve_context(metrics.code_content)
 
-            all_issues.extend(ai_response.issues)
-            summaries.append(ai_response.summary)
+                prompt_type = "rag" if rag_context else ("security" if category_filter == "security" else "general")
+
+                ai_response: AIResponse = self.ai_provider.review_code(
+                    file_path=scanned_file.relative_path,
+                    code=metrics.code_content,
+                    language=scanned_file.language,
+                    prompt_type=prompt_type,
+                    functions=metrics.functions,
+                    classes=metrics.classes,
+                )
+
+                file_issues.extend(ai_response.issues)
+                summaries.append(ai_response.summary)
+
+                # Update Cache
+                self.cache_manager.update_cache(scanned_file.path, scanned_file.relative_path, file_issues)
+
+            all_issues.extend(file_issues)
+
+        # Apply category filter if specified (e.g. --security, --performance, --architecture)
+        if category_filter:
+            cat_low = category_filter.lower()
+            all_issues = [i for i in all_issues if i.category.lower() == cat_low or cat_low in i.category.lower()]
+
+        # Deduplicate issues by file_path + title + line_number
+        unique_issues: List[ReviewIssue] = []
+        seen_keys = set()
+        for issue in all_issues:
+            key = (issue.file_path, issue.line_number, issue.title)
+            if key not in seen_keys:
+                seen_keys.add(key)
+                unique_issues.append(issue)
+
+        all_issues = unique_issues
+
+        # Save Cache file
+        self.cache_manager.save_cache()
 
         # Count severities
         high_cnt = sum(1 for i in all_issues if i.severity == "HIGH")
@@ -122,13 +165,10 @@ class ReviewerEngine:
         low_cnt = sum(1 for i in all_issues if i.severity == "LOW")
         info_cnt = sum(1 for i in all_issues if i.severity == "INFO")
 
-        # Calculate scores & metrics
+        # Calculate weighted health scores
         scores = self._calculate_health_scores(
             file_metrics=file_metrics_list,
-            high_count=high_cnt,
-            med_count=med_cnt,
-            low_count=low_cnt,
-            info_count=info_cnt,
+            issues=all_issues,
             total_lines=scan_result.total_lines,
         )
 
@@ -151,45 +191,66 @@ class ReviewerEngine:
     def _calculate_health_scores(
         self,
         file_metrics: List[FileStructureMetrics],
-        high_count: int,
-        med_count: int,
-        low_count: int,
-        info_count: int,
+        issues: List[ReviewIssue],
         total_lines: int,
     ) -> HealthScores:
-        """Derive project health, maintainability, security, and tech debt scores."""
-        # Calculate Average Complexity
+        """Derive weighted project health, maintainability, security, and tech debt scores."""
+        # Average Complexity & Docstrings
         if file_metrics:
             avg_complexity = sum(m.complexity for m in file_metrics) / len(file_metrics)
+            doc_ratio = sum(1 for m in file_metrics if m.has_docstring) / len(file_metrics)
         else:
             avg_complexity = 1.0
+            doc_ratio = 1.0
 
-        # Sub-score penalties based on issue severity counts
-        sec_penalty = (high_count * 2.5) + (med_count * 0.8)
-        perf_penalty = (high_count * 1.5) + (med_count * 1.0) + (low_count * 0.2)
-        maint_penalty = (avg_complexity * 0.4) + (med_count * 0.5) + (low_count * 0.2)
-        quality_penalty = (high_count * 2.0) + (med_count * 0.7) + (low_count * 0.3)
+        # Sub-issue counts per category
+        sec_issues = [i for i in issues if i.category.lower() == "security"]
+        quality_issues = [i for i in issues if i.category.lower() in ("quality", "bug", "readability")]
+        perf_issues = [i for i in issues if i.category.lower() == "performance"]
 
+        # 1. Security Score (40% Weight)
+        sec_penalty = sum(2.5 if i.severity == "HIGH" else (0.8 if i.severity == "MEDIUM" else 0.2) for i in sec_issues)
         sec_score = max(1.0, min(10.0, 10.0 - sec_penalty))
-        perf_score = max(1.0, min(10.0, 10.0 - perf_penalty))
-        maint_score = max(1.0, min(10.0, 10.0 - maint_penalty))
+
+        # 2. Code Quality Score (25% Weight)
+        quality_penalty = sum(2.0 if i.severity == "HIGH" else (0.7 if i.severity == "MEDIUM" else 0.2) for i in quality_issues)
         quality_score = max(1.0, min(10.0, 10.0 - quality_penalty))
 
-        # Overall weighted score
-        overall = (sec_score * 0.35) + (quality_score * 0.25) + (maint_score * 0.25) + (perf_score * 0.15)
+        # 3. Maintainability Score (25% Weight)
+        maint_penalty = (avg_complexity * 0.3) + sum(0.5 if i.severity == "MEDIUM" else 0.1 for i in issues)
+        maint_score = max(1.0, min(10.0, 10.0 - maint_penalty))
+
+        # 4. Performance Score (15% Weight)
+        perf_penalty = sum(1.5 if i.severity == "HIGH" else (0.8 if i.severity == "MEDIUM" else 0.2) for i in perf_issues)
+        perf_score = max(1.0, min(10.0, 10.0 - perf_penalty))
+
+        # 5. Documentation & Testing Scores (5% Weight each)
+        doc_score = max(1.0, min(10.0, doc_ratio * 10.0))
+        test_score = 8.5  # Base estimate
+
+        # Weighted Overall Score Formula
+        overall = (
+            (sec_score * 0.40) +
+            (maint_score * 0.25) +
+            (quality_score * 0.15) +
+            (perf_score * 0.10) +
+            (doc_score * 0.05) +
+            (test_score * 0.05)
+        )
         overall = round(max(1.0, min(10.0, overall)), 1)
 
-        # Technical debt estimation in hours (High=4h, Med=1.5h, Low=0.5h, Info=0.1h + complexity factor)
-        debt_hours = (high_count * 4.0) + (med_count * 1.5) + (low_count * 0.5) + (info_count * 0.1)
-        if avg_complexity > 10:
-            debt_hours += (avg_complexity - 10) * 0.5
+        # Technical debt estimation in hours
+        debt_minutes = sum(i.estimated_fix_minutes for i in issues)
+        debt_hours = round(debt_minutes / 60.0, 1)
 
         return HealthScores(
             overall_score=overall,
-            maintainability_score=round(maint_score, 1),
             security_score=round(sec_score, 1),
+            maintainability_score=round(maint_score, 1),
             performance_score=round(perf_score, 1),
             code_quality_score=round(quality_score, 1),
-            estimated_technical_debt_hours=round(debt_hours, 1),
+            documentation_score=round(doc_score, 1),
+            testing_score=round(test_score, 1),
+            estimated_technical_debt_hours=debt_hours,
             average_cyclomatic_complexity=round(avg_complexity, 1),
         )

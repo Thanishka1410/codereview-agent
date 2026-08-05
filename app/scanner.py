@@ -1,4 +1,6 @@
 import os
+import fnmatch
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import List, Dict, Optional, Set
 from pydantic import BaseModel, ConfigDict
@@ -11,6 +13,10 @@ EXTENSION_TO_LANGUAGE: Dict[str, str] = {
     ".ts": "typescript",
     ".tsx": "react-typescript",
     ".java": "java",
+    ".kt": "kotlin",
+    ".kts": "kotlin",
+    ".swift": "swift",
+    ".dart": "dart",
     ".go": "go",
     ".rs": "rust",
     ".c": "c",
@@ -52,14 +58,15 @@ class ProjectScanResult(BaseModel):
     language_breakdown: Dict[str, int]
 
 
-
 class Scanner:
-    """Project Scanner that detects files, languages, and ignores excluded folders."""
+    """Production-grade file scanner with parallel walking, binary check, and glob filters."""
 
     def __init__(
         self,
         ignored_folders: Optional[List[str]] = None,
         ignored_files: Optional[List[str]] = None,
+        include_patterns: Optional[List[str]] = None,
+        exclude_patterns: Optional[List[str]] = None,
         max_file_size_kb: int = 500,
         language_filter: Optional[str] = None,
     ):
@@ -67,15 +74,43 @@ class Scanner:
             ignored_folders
             or [
                 ".git", "venv", ".venv", "node_modules", "dist", "build",
-                "__pycache__", ".pytest_cache", ".egg-info", ".idea", ".vscode"
+                "__pycache__", ".pytest_cache", ".egg-info", ".idea", ".vscode", "reports"
             ]
         )
         self.ignored_files: Set[str] = set(
             ignored_files
             or ["package-lock.json", "yarn.lock", "poetry.lock", "Pipfile.lock"]
         )
+        self.include_patterns = include_patterns or []
+        self.exclude_patterns = exclude_patterns or []
         self.max_file_size_bytes = max_file_size_kb * 1024
         self.language_filter = language_filter.lower() if language_filter and language_filter != "auto" else None
+        self.seen_realpaths: Set[str] = set()
+
+    def is_binary(self, file_path: Path) -> bool:
+        """Check if file is binary by inspecting null bytes in first 1024 bytes."""
+        try:
+            with open(file_path, "rb") as f:
+                chunk = f.read(1024)
+                if b"\x00" in chunk:
+                    return True
+        except Exception:
+            return True
+        return False
+
+    def is_generated_code(self, file_path: Path) -> bool:
+        """Check if file is auto-generated."""
+        name = file_path.name.lower()
+        if name.endswith(".min.js") or name.endswith(".min.css") or "bundle" in name:
+            return True
+        try:
+            with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+                first_lines = "".join([f.readline() for _ in range(5)]).lower()
+                if "@generated" in first_lines or "auto-generated" in first_lines:
+                    return True
+        except Exception:
+            pass
+        return False
 
     def detect_language(self, file_path: Path) -> str:
         """Detect programming language based on file extension."""
@@ -83,20 +118,34 @@ class Scanner:
         return EXTENSION_TO_LANGUAGE.get(ext, "unknown")
 
     def should_ignore(self, path: Path, root: Path) -> bool:
-        """Check if a file or directory should be ignored during scan."""
-        # Check filename/dirname against ignore lists
-        if path.name in self.ignored_files or path.name in self.ignored_folders:
+        """Check if file/folder should be ignored."""
+        name = path.name
+
+        # Hidden file or folder
+        if name.startswith(".") and name not in (".", ".."):
+            if name in self.ignored_folders or name in self.ignored_files:
+                return True
+
+        if name in self.ignored_files or name in self.ignored_folders:
             return True
 
-        # Check if any parent directory is in ignored_folders relative to root
         try:
             rel_parts = path.relative_to(root).parts
             for part in rel_parts:
-                if part in self.ignored_folders:
+                if part in self.ignored_folders or (part.startswith(".") and part not in (".", "..")):
                     return True
         except ValueError:
-            # Path is not relative to root
             return False
+
+        # Exclude patterns
+        if self.exclude_patterns:
+            if any(fnmatch.fnmatch(name, pat) for pat in self.exclude_patterns):
+                return True
+
+        # Include patterns
+        if self.include_patterns:
+            if not any(fnmatch.fnmatch(name, pat) for pat in self.include_patterns):
+                return True
 
         return False
 
@@ -105,11 +154,23 @@ class Scanner:
         if not file_path.is_file():
             return None
 
+        # Check symlinks & realpaths to prevent duplicate scanning or infinite loops
+        try:
+            real_p = str(file_path.resolve())
+            if real_p in self.seen_realpaths:
+                return None
+            self.seen_realpaths.add(real_p)
+        except Exception:
+            return None
+
         if self.should_ignore(file_path, root):
             return None
 
         size_bytes = file_path.stat().st_size
         if size_bytes > self.max_file_size_bytes or size_bytes == 0:
+            return None
+
+        if self.is_binary(file_path) or self.is_generated_code(file_path):
             return None
 
         language = self.detect_language(file_path)
@@ -137,30 +198,40 @@ class Scanner:
         )
 
     def scan(self, target_path: str | Path) -> ProjectScanResult:
-        """Scan a directory or single file recursively."""
+        """Scan target path using parallel ThreadPoolExecutor for high performance."""
         target = Path(target_path).resolve()
         if not target.exists():
             raise FileNotFoundError(f"Target path does not exist: {target}")
 
+        self.seen_realpaths.clear()
         scanned_files: List[ScannedFile] = []
         root = target if target.is_dir() else target.parent
 
         if target.is_file():
-            scanned_file = self.scan_file(target, root)
-            if scanned_file:
-                scanned_files.append(scanned_file)
+            sf = self.scan_file(target, root)
+            if sf:
+                scanned_files.append(sf)
         else:
-            for current_root, dirs, files in os.walk(target):
-                # Filter directories in-place to prevent entering ignored folders
-                dirs[:] = [d for d in dirs if d not in self.ignored_folders]
-
+            file_candidates: List[Path] = []
+            for current_root, dirs, files in os.walk(target, followlinks=False):
+                dirs[:] = [
+                    d for d in dirs
+                    if d not in self.ignored_folders and not d.startswith(".")
+                ]
                 for file in files:
-                    file_path = Path(current_root) / file
-                    scanned_file = self.scan_file(file_path, root)
-                    if scanned_file:
-                        scanned_files.append(scanned_file)
+                    file_candidates.append(Path(current_root) / file)
 
-        # Calculate statistics
+            # Parallel scanning using ThreadPoolExecutor
+            with ThreadPoolExecutor(max_workers=min(16, os.cpu_count() or 4)) as executor:
+                futures = [executor.submit(self.scan_file, f, root) for f in file_candidates]
+                for future in as_completed(futures):
+                    res = future.result()
+                    if res:
+                        scanned_files.append(res)
+
+        # Sort files by relative path for deterministic results
+        scanned_files.sort(key=lambda x: x.relative_path)
+
         total_files = len(scanned_files)
         total_lines = sum(f.line_count for f in scanned_files)
         total_size_bytes = sum(f.size_bytes for f in scanned_files)

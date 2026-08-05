@@ -1,8 +1,12 @@
 # CodeReview Agent 🤖
 
-> **Production-Grade AI-Powered Code Review CLI Tool**
+> **Production-Grade AI-Powered Code Review & Static Analysis CLI Tool**
 
-`codereview` is an intelligent, developer-centric CLI tool designed to review entire software codebases directly from your terminal. Built with Python 3.10+, Typer, Rich, and multi-provider AI support (OpenAI GPT-4o, Google Gemini, Anthropic Claude, and an offline rule-engine provider).
+[![Build Status](https://github.com/your-org/codereview-agent/workflows/CodeReview%20Agent%20CI/badge.svg)](https://github.com/your-org/codereview-agent/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue.svg)](pyproject.toml)
+
+`codereview` is an intelligent, developer-centric CLI tool built to review large software repositories. Combining a **rules-based static analysis engine** (for security vulnerabilities, code quality, and performance) with **multi-provider LLM integrations** (OpenAI GPT-4o, Google Gemini, Anthropic Claude, and an offline mock engine), `codereview` delivers actionable, weighted code assessments directly in your terminal and exports interactive HTML dashboards.
 
 ---
 
@@ -17,26 +21,54 @@
 
 ---
 
-## 🌟 Key Features
+## 🌟 Key Capabilities & Features
 
-- 🚀 **Terminal-First Workflow**: Run `codereview` inside any software repository.
-- ⚡ **Multi-Language Scanner**: Automatically scans Python, JavaScript, TypeScript, React, Java, Go, Rust, C/C++, PHP, HTML, CSS, and C#.
-- 🧠 **Multi-Provider AI Engine**: Plug-and-play support for **OpenAI** (`gpt-4o`), **Google Gemini** (`gemini-1.5-flash`), **Anthropic Claude** (`claude-3-5-sonnet`), or an **Offline Mock Engine** for keyless execution.
-- 🛡️ **Comprehensive Analysis**: Detects Security Vulnerabilities (SQLi, Secret leaks, RCE), Logic Bugs, Memory Leaks, Code Smells, SOLID violations, and Performance Bottlenecks.
-- 📊 **Project Health Score & Debt Estimation**: Computes Security, Maintainability, Code Quality, and Performance scores alongside Cyclomatic Complexity and Technical Debt estimates (in hours).
-- 📄 **Multi-Format Report Export**: Generate beautiful HTML, Markdown (`.md`), and JSON reports.
-- 🌿 **Git Integration**: Review only modified or staged files using the `--diff` flag.
-- 🔌 **Extensible GitHub PR Module**: Built-in payload formatters for GitHub Actions & Pull Request inline review comments.
+- ⚡ **Multi-Threaded Repository Scanner**: Parallel directory walking (`ThreadPoolExecutor`) with binary detection, symlink safety, glob include/exclude filters, and hash-based incremental caching (`.codereview_cache.json`).
+- 🌐 **16+ Language AST & Heuristic Parsing**: Python, JavaScript, TypeScript, React, Java, Kotlin, Swift, Dart, Go, Rust, PHP, C, C++, C#, HTML, CSS.
+- 🛡️ **Deep Rule-Based Static Analysis (`app/static_analysis.py`)**: Detects SQL Injection, XSS, Command Injection, Secrets, Unsafe `eval`/`exec`/`pickle`/`subprocess`, Path Traversal, Nested loops $O(n^2)$, string concatenation in loops, deep nesting, and large files.
+- 🧠 **Resilient Multi-Provider AI Engine**: OpenAI (`gpt-4o`), Google Gemini (`gemini-1.5-flash`), Anthropic Claude (`claude-3-5-sonnet`), and offline `MockAIProvider` with exponential backoff retries and JSON auto-repair mechanics.
+- 📊 **Weighted Quality & Technical Debt Score**: Calculates Security (40%), Maintainability (25%), Code Quality (15%), Performance (10%), Documentation (5%), and Testing (5%) sub-scores alongside Technical Debt estimates (in hours).
+- 📈 **Interactive Chart.js HTML Dashboard**: Generates self-contained HTML reports featuring severity pie charts, category sub-score bar charts, interactive severity filters, and top vulnerable files.
+- 🤖 **GitHub Actions CI/CD Integration**: Formats GitHub Actions workflow annotations (`::warning file=...::`) and PR review payload comments.
+- 🌿 **Git Integration**: Review only modified or staged files using `--diff`.
 
 ---
 
-## 🛠️ Tech Stack
+## 🏛️ System Architecture
 
-- **Core**: Python 3.10+
-- **CLI Framework**: Typer & Rich
-- **AI Integrations**: OpenAI REST API, Gemini REST API, Claude REST API
-- **Configuration**: TOML (`.codereview.toml`) & Environment Variables
-- **Testing**: `pytest`
+```
+                                  +-------------------+
+                                  |  codereview CLI   |
+                                  +---------+---------+
+                                            |
+                         +------------------+------------------+
+                         |                                     |
+              +----------v----------+               +----------v----------+
+              | Parallel File       |               | Rule-Based Static   |
+              | Scanner & Cache     |               | Analysis Engine     |
+              +----------+----------+               +----------+----------+
+                         |                                     |
+                         +------------------+------------------+
+                                            |
+                                  +---------v---------+
+                                  | RAG Vector Engine | (Docs & Styleguides)
+                                  +---------+---------+
+                                            |
+                                  +---------v---------+
+                                  | AI Provider Layer | (OpenAI / Gemini / Claude / Mock)
+                                  +---------+---------+
+                                            |
+                                  +---------v---------+
+                                  | Weighted Scoring  | (40% Sec / 25% Maint / 15% Qual)
+                                  +---------+---------+
+                                            |
+                    +-----------------------+-----------------------+
+                    |                       |                       |
+          +---------v---------+   +---------v---------+   +---------v---------+
+          | Rich Terminal UI  |   | Chart.js HTML     |   | GitHub Actions    |
+          | Dashboard         |   | Interactive Report|   | Annotations       |
+          +-------------------+   +-------------------+   +-------------------+
+```
 
 ---
 
@@ -58,62 +90,59 @@ codereview --version
 
 ---
 
-## 💡 Usage Examples
+## 💻 CLI Reference & Examples
 
-### 1. Review Entire Project (Current Folder)
+### 1. Standard Project Review
 ```bash
 codereview
 ```
 
-### 2. Review Specific Subfolder or File
+### 2. Category Filtered Reviews
 ```bash
-codereview src/
-codereview app/main.py
+# Security audit only
+codereview --security
+
+# Performance audit only
+codereview --performance
+
+# Architecture & SOLID rules only
+codereview --architecture
 ```
 
-### 3. Show Only Project Health Score
+### 3. Report Exporting
 ```bash
-codereview --score
+# Generate Chart.js HTML dashboard and Markdown report
+codereview --html --markdown
+
+# Output machine-readable JSON report
+codereview --json
 ```
 
-### 4. Show Summary Overview Only
-```bash
-codereview --summary
-```
-
-### 5. Filter Files by Programming Language
-```bash
-codereview --language python
-```
-
-### 6. Review Only Git Changed / Staged Files
+### 4. Git Changed Files Review
 ```bash
 codereview --diff
 ```
 
-### 7. Export Markdown and HTML Reports
+### 5. Quiet Mode for Scripting & CI Pipelines
 ```bash
-codereview --markdown --html
-```
-*Reports are exported automatically to `reports/codereview_report.html` and `reports/codereview_report.md`.*
-
-### 8. Output Raw JSON Report
-```bash
-codereview --json
+codereview --quiet --score
 ```
 
-### 9. Specify Custom AI Provider or Model
+### 6. GitHub Actions Workflow Annotations
 ```bash
-codereview --provider openai --model gpt-4o
-codereview --provider gemini --model gemini-1.5-flash
-codereview --provider claude --model claude-3-5-sonnet
+codereview --github-annotations --quiet
+```
+
+### 7. RAG Documentation-Augmented Review
+```bash
+codereview --rag --docs-dir ./docs
 ```
 
 ---
 
 ## ⚙️ Configuration (`.codereview.toml`)
 
-Create a `.codereview.toml` file in your repository root to configure default preferences:
+Customize scan parameters in `.codereview.toml`:
 
 ```toml
 [codereview]
@@ -132,7 +161,8 @@ ignored_folders = [
     "dist",
     "build",
     "__pycache__",
-    ".pytest_cache"
+    ".pytest_cache",
+    "reports"
 ]
 ignored_files = [
     "package-lock.json",
@@ -144,78 +174,25 @@ target_score = 8.5
 fail_on_high_severity = false
 ```
 
-### API Key Environment Variables
+---
 
-Provide your API keys via standard environment variables:
+## 🧪 Testing & CI
+
+Run the unit test suite:
 
 ```bash
-# OpenAI
-export OPENAI_API_KEY="sk-..."
-
-# Google Gemini
-export GEMINI_API_KEY="AIzaSy..."
-
-# Anthropic Claude
-export ANTHROPIC_API_KEY="sk-ant-..."
+python -m pytest -v
 ```
 
 ---
 
-## 🏛️ Project Architecture
+## ❓ FAQ & Troubleshooting
 
-```
-codereview-agent/
-│
-├── app/
-│   ├── cli.py             # Typer CLI Entrypoint (`codereview`)
-│   ├── config.py          # Configuration parser (.codereview.toml + env vars)
-│   ├── scanner.py         # File tree scanner & language detector
-│   ├── utils.py           # AST parsing, cyclomatic complexity & Git integration
-│   ├── reviewer.py        # Core Engine: Analysis + AI query + Health Scoring
-│   ├── formatter.py       # Rich terminal UI, badges, panels & tables
-│   ├── report.py          # Exporters: JSON, Markdown, HTML reports
-│   ├── prompts.py         # Specialized prompt templates
-│   ├── github.py          # GitHub PR & inline review comment module
-│   └── ai/                # AI Provider abstraction layer
-│       ├── base.py        # Abstract AI Provider base class
-│       ├── openai_provider.py
-│       ├── gemini_provider.py
-│       ├── claude_provider.py
-│       ├── mock_provider.py
-│       └── factory.py     # Provider instantiation factory
-│
-├── tests/                 # Pytest unit tests
-│   └── test_suite.py
-│
-├── examples/              # Sample vulnerable project for testing
-│   └── sample_project/
-│       ├── sample_vulnerable.py
-│       └── sample_script.js
-│
-├── .codereview.toml       # Default configuration file template
-├── pyproject.toml         # Build system definition
-├── requirements.txt       # Project dependencies
-└── README.md
-```
+- **Q: Do I need an API key to run `codereview`?**  
+  *A: No. By default, `codereview` uses the built-in offline Mock Engine which runs complete static security and quality checks locally with zero external network requests.*
 
----
-
-## 🧪 Running Tests
-
-To run the test suite:
-
-```bash
-python -m pytest
-```
-
----
-
-## 🚀 Future Roadmap & Extensibility
-
-- [ ] **Local LLM Support**: Integration with Ollama for 100% air-gapped local AI reviews (`codereview --provider ollama --model llama3`).
-- [ ] **RAG-based Documentation Context**: Index local `.md` docs and architecture decisions for contextual reviews.
-- [ ] **GitHub Actions CI Workflow**: Fail build steps automatically if project health score drops below threshold.
-- [ ] **VS Code Extension**: Inline review highlighting directly inside the editor.
+- **Q: How do I pass an OpenAI or Gemini API key?**  
+  *A: Set `export OPENAI_API_KEY="sk-..."` or `export GEMINI_API_KEY="AIzaSy..."` in your environment and run `codereview --provider openai` or `codereview --provider gemini`.*
 
 ---
 

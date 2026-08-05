@@ -1,7 +1,7 @@
 import json
 from typing import List, Optional
 import requests
-from app.ai.base import BaseAIProvider, AIResponse, ReviewIssue
+from app.ai.base import BaseAIProvider, AIResponse, ReviewIssue, repair_json_text
 from app.prompts import SYSTEM_PROMPT, GENERAL_REVIEW_PROMPT, SECURITY_REVIEW_PROMPT, PERFORMANCE_REVIEW_PROMPT
 
 
@@ -63,14 +63,7 @@ class GeminiProvider(BaseAIProvider):
             raise RuntimeError(f"Gemini API request failed: {e}")
 
     def _parse_json_response(self, raw_text: str, file_path: str, model_name: str) -> AIResponse:
-        clean_text = raw_text.strip()
-        if clean_text.startswith("```json"):
-            clean_text = clean_text[7:]
-        if clean_text.startswith("```"):
-            clean_text = clean_text[3:]
-        if clean_text.endswith("```"):
-            clean_text = clean_text[:-3]
-        clean_text = clean_text.strip()
+        clean_text = repair_json_text(raw_text)
 
         try:
             parsed = json.loads(clean_text)
@@ -82,12 +75,15 @@ class GeminiProvider(BaseAIProvider):
                 issues.append(
                     ReviewIssue(
                         severity=str(item.get("severity", "MEDIUM")).upper(),
+                        category=item.get("category", "General"),
                         file_path=item.get("file_path", file_path),
                         line_number=item.get("line_number"),
-                        category=item.get("category", "General"),
                         title=item.get("title", "Review Finding"),
                         description=item.get("description", ""),
                         suggestion=item.get("suggestion", ""),
+                        code_example=item.get("code_example"),
+                        confidence_score=float(item.get("confidence_score", 0.9)),
+                        estimated_fix_minutes=int(item.get("estimated_fix_minutes", 15)),
                     )
                 )
 
@@ -103,8 +99,8 @@ class GeminiProvider(BaseAIProvider):
                 issues=[
                     ReviewIssue(
                         severity="INFO",
-                        file_path=file_path,
                         category="General",
+                        file_path=file_path,
                         title="AI Analysis Output",
                         description=raw_text[:300],
                         suggestion="Check raw response.",
