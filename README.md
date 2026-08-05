@@ -45,7 +45,7 @@
 Clone the repository and install locally in editable mode:
 
 ```bash
-git clone https://github.com/your-org/codereview-agent.git
+git clone https://github.com/Thanishka1410/codereview-agent.git
 cd codereview-agent
 pip install -e .
 ```
