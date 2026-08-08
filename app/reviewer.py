@@ -97,7 +97,6 @@ class ReviewerEngine:
             if progress_callback:
                 progress_callback(idx, total_files, scanned_file.relative_path)
 
-            # 1. Structural static AST analysis
             metrics = analyze_file_structure(
                 scanned_file.path, scanned_file.relative_path, scanned_file.language
             )
@@ -105,18 +104,15 @@ class ReviewerEngine:
 
             file_issues: List[ReviewIssue] = []
 
-            # 2. Check File Cache
             if self.cache_manager.is_file_unchanged(scanned_file.path, scanned_file.relative_path):
                 cached_data = self.cache_manager.get_cached_issues(scanned_file.relative_path)
                 file_issues = [ReviewIssue(**item) for item in cached_data]
             else:
-                # 3. Rule-Based Static Analysis Checks
                 static_issues = self.static_analyzer.analyze_file(
                     scanned_file.path, scanned_file.relative_path, metrics.code_content, scanned_file.language
                 )
                 file_issues.extend(static_issues)
 
-                # 4. AI Provider Review
                 rag_context = ""
                 if self.rag_engine.is_indexed:
                     rag_context = self.rag_engine.retrieve_context(metrics.code_content)
@@ -135,17 +131,14 @@ class ReviewerEngine:
                 file_issues.extend(ai_response.issues)
                 summaries.append(ai_response.summary)
 
-                # Update Cache
                 self.cache_manager.update_cache(scanned_file.path, scanned_file.relative_path, file_issues)
 
             all_issues.extend(file_issues)
 
-        # Apply category filter if specified (e.g. --security, --performance, --architecture)
         if category_filter:
             cat_low = category_filter.lower()
             all_issues = [i for i in all_issues if i.category.lower() == cat_low or cat_low in i.category.lower()]
 
-        # Deduplicate issues by file_path + title + line_number
         unique_issues: List[ReviewIssue] = []
         seen_keys = set()
         for issue in all_issues:
@@ -156,20 +149,18 @@ class ReviewerEngine:
 
         all_issues = unique_issues
 
-        # Save Cache file
         self.cache_manager.save_cache()
 
-        # Count severities
         high_cnt = sum(1 for i in all_issues if i.severity == "HIGH")
         med_cnt = sum(1 for i in all_issues if i.severity == "MEDIUM")
         low_cnt = sum(1 for i in all_issues if i.severity == "LOW")
         info_cnt = sum(1 for i in all_issues if i.severity == "INFO")
 
-        # Calculate weighted health scores
         scores = self._calculate_health_scores(
             file_metrics=file_metrics_list,
             issues=all_issues,
             total_lines=scan_result.total_lines,
+            scan_result=scan_result,
         )
 
         return ProjectReviewResult(
@@ -193,9 +184,9 @@ class ReviewerEngine:
         file_metrics: List[FileStructureMetrics],
         issues: List[ReviewIssue],
         total_lines: int,
+        scan_result: Optional[ProjectScanResult] = None,
     ) -> HealthScores:
-        """Derive weighted project health, maintainability, security, and tech debt scores."""
-        # Average Complexity & Docstrings
+        """Derive weighted project health, maintainability, security, tech debt, and dynamic testing scores."""
         if file_metrics:
             avg_complexity = sum(m.complexity for m in file_metrics) / len(file_metrics)
             doc_ratio = sum(1 for m in file_metrics if m.has_docstring) / len(file_metrics)
@@ -203,7 +194,6 @@ class ReviewerEngine:
             avg_complexity = 1.0
             doc_ratio = 1.0
 
-        # Sub-issue counts per category
         sec_issues = [i for i in issues if i.category.lower() == "security"]
         quality_issues = [i for i in issues if i.category.lower() in ("quality", "bug", "readability")]
         perf_issues = [i for i in issues if i.category.lower() == "performance"]
@@ -224,9 +214,28 @@ class ReviewerEngine:
         perf_penalty = sum(1.5 if i.severity == "HIGH" else (0.8 if i.severity == "MEDIUM" else 0.2) for i in perf_issues)
         perf_score = max(1.0, min(10.0, 10.0 - perf_penalty))
 
-        # 5. Documentation & Testing Scores (5% Weight each)
+        # 5. Documentation Score (5% Weight)
         doc_score = max(1.0, min(10.0, doc_ratio * 10.0))
-        test_score = 8.5  # Base estimate
+
+        # 6. Dynamic Testing Score (5% Weight)
+        if scan_result and scan_result.files:
+            test_files = [f for f in scan_result.files if f.is_test_file]
+            source_files = [f for f in scan_result.files if not f.is_test_file]
+
+            if not source_files:
+                test_score = 10.0 if test_files else 1.0
+            elif not test_files:
+                test_score = 1.0
+            else:
+                file_ratio = len(test_files) / len(source_files)
+                test_loc = sum(f.line_count for f in test_files)
+                source_loc = sum(f.line_count for f in source_files)
+                loc_ratio = test_loc / max(1, source_loc)
+
+                hybrid_ratio = (0.5 * file_ratio) + (0.5 * loc_ratio)
+                test_score = max(1.0, min(10.0, 1.0 + (hybrid_ratio / 0.40) * 9.0))
+        else:
+            test_score = 1.0
 
         # Weighted Overall Score Formula
         overall = (
@@ -239,7 +248,6 @@ class ReviewerEngine:
         )
         overall = round(max(1.0, min(10.0, overall)), 1)
 
-        # Technical debt estimation in hours
         debt_minutes = sum(i.estimated_fix_minutes for i in issues)
         debt_hours = round(debt_minutes / 60.0, 1)
 

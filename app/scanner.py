@@ -43,6 +43,7 @@ class ScannedFile(BaseModel):
     language: str
     size_bytes: int
     line_count: int
+    is_test_file: bool = False
 
 
 class ProjectScanResult(BaseModel):
@@ -56,6 +57,8 @@ class ProjectScanResult(BaseModel):
     total_size_bytes: int
     primary_language: str
     language_breakdown: Dict[str, int]
+    test_files_count: int = 0
+    test_lines_count: int = 0
 
 
 class Scanner:
@@ -117,11 +120,32 @@ class Scanner:
         ext = file_path.suffix.lower()
         return EXTENSION_TO_LANGUAGE.get(ext, "unknown")
 
+    def is_test_file(self, file_path: Path, relative_path: str) -> bool:
+        """Determine if a file is a unit/integration test file based on directory or naming convention."""
+        norm_path = relative_path.replace("\\", "/").lower()
+        file_name = file_path.name.lower()
+        path_parts = [p.lower() for p in Path(norm_path).parts]
+
+        # Directory conventions: tests/, test/, __tests__/, spec/, specs/
+        test_dirs = {"tests", "test", "__tests__", "spec", "specs"}
+        if any(part in test_dirs for part in path_parts[:-1]):
+            return True
+
+        # Filename conventions across languages
+        test_patterns = [
+            "test_*.py", "*_test.py",
+            "*.test.js", "*.spec.js", "*.test.jsx", "*.spec.jsx",
+            "*.test.ts", "*.spec.ts", "*.test.tsx", "*.spec.tsx",
+            "*test.java", "*tests.java", "*test.kt", "*tests.kt", "*spec.kt",
+            "*_test.go", "*test.cs", "*test.php", "*tests.swift", "*test.dart",
+            "test_*.rb", "*_spec.rb",
+        ]
+        return any(fnmatch.fnmatch(file_name, pat) for pat in test_patterns)
+
     def should_ignore(self, path: Path, root: Path) -> bool:
         """Check if file/folder should be ignored."""
         name = path.name
 
-        # Hidden file or folder
         if name.startswith(".") and name not in (".", ".."):
             if name in self.ignored_folders or name in self.ignored_files:
                 return True
@@ -137,12 +161,10 @@ class Scanner:
         except ValueError:
             return False
 
-        # Exclude patterns
         if self.exclude_patterns:
             if any(fnmatch.fnmatch(name, pat) for pat in self.exclude_patterns):
                 return True
 
-        # Include patterns
         if self.include_patterns:
             if not any(fnmatch.fnmatch(name, pat) for pat in self.include_patterns):
                 return True
@@ -154,7 +176,6 @@ class Scanner:
         if not file_path.is_file():
             return None
 
-        # Check symlinks & realpaths to prevent duplicate scanning or infinite loops
         try:
             real_p = str(file_path.resolve())
             if real_p in self.seen_realpaths:
@@ -187,6 +208,7 @@ class Scanner:
             line_count = 0
 
         rel_path = str(file_path.relative_to(root)) if file_path != root else file_path.name
+        is_test = self.is_test_file(file_path, rel_path)
 
         return ScannedFile(
             path=file_path.resolve(),
@@ -195,6 +217,7 @@ class Scanner:
             language=language,
             size_bytes=size_bytes,
             line_count=line_count,
+            is_test_file=is_test,
         )
 
     def _collect_file_candidates(self, target: Path) -> List[Path]:
@@ -226,7 +249,6 @@ class Scanner:
         else:
             file_candidates = self._collect_file_candidates(target)
 
-            # Parallel scanning using ThreadPoolExecutor
             workers = min(16, os.cpu_count() or 4)
             with ThreadPoolExecutor(max_workers=workers) as executor:
                 futures = [executor.submit(self.scan_file, f, root) for f in file_candidates]
@@ -235,7 +257,6 @@ class Scanner:
                     if res:
                         scanned_files.append(res)
 
-        # Sort files by relative path for deterministic results
         scanned_files.sort(key=lambda x: x.relative_path)
 
         total_files = len(scanned_files)
@@ -250,6 +271,9 @@ class Scanner:
         if lang_counts:
             primary_lang = max(lang_counts.items(), key=lambda x: x[1])[0]
 
+        test_files_count = sum(1 for f in scanned_files if f.is_test_file)
+        test_lines_count = sum(f.line_count for f in scanned_files if f.is_test_file)
+
         return ProjectScanResult(
             root_path=root,
             files=scanned_files,
@@ -258,4 +282,6 @@ class Scanner:
             total_size_bytes=total_size_bytes,
             primary_language=primary_lang,
             language_breakdown=lang_counts,
+            test_files_count=test_files_count,
+            test_lines_count=test_lines_count,
         )
