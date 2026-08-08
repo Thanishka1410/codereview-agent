@@ -20,7 +20,7 @@ def print_banner(quiet: bool = False):
  / /   / __ \/ __  / __ \/ /_/ / / /  |/ / | |_  | |  | | 
 / /___/ /_/ / /_/ /  __/ _, _/ / / /|  /  |  _| | |__| | 
 \____/\____/\__,_/\___/_/ |_/_/_/_/ |_/   |_|    \____/  
-[/bold cyan][dim]                 AI-Powered Production Code Review CLI Agent v1.0.0[/dim]
+[/bold cyan][dim]                 AI-Powered Production Code Review CLI Agent v1.1.0[/dim]
 """
     console.print(banner_text)
 
