@@ -219,5 +219,170 @@
     "file_path": "vscode-extension\\tsconfig.json",
     "sha256": "5a9786778912bde40b148e20041f27206dbd7a4f2b58a441b746f4162171f3f3",
     "issues": []
+  },
+  "docs\\styleguide.md": {
+    "file_path": "docs\\styleguide.md",
+    "sha256": "5cbad1c0d5e66594f093571c7efe6e7096f95c10866b61557217c00850bc838b",
+    "issues": [
+      {
+        "severity": "HIGH",
+        "category": "Security",
+        "file_path": "docs\\styleguide.md",
+        "line_number": 9,
+        "title": "Dynamic Code Execution (eval/exec)",
+        "description": "Use of eval() or exec() can allow arbitrary code execution vulnerabilities.",
+        "suggestion": "Replace dynamic code execution with safe dictionary mapping or ast.literal_eval.",
+        "code_example": null,
+        "confidence_score": 0.9,
+        "estimated_fix_minutes": 15
+      }
+    ]
+  },
+  "sample_script.js": {
+    "file_path": "sample_script.js",
+    "sha256": "c8cfb135d0f59b4223f9808102008b4ff6041dd924d99a5f8bd2d40da6f586a9",
+    "issues": [
+      {
+        "severity": "HIGH",
+        "category": "Security",
+        "file_path": "sample_script.js",
+        "line_number": 12,
+        "title": "Unsafe Code Execution (eval/exec)",
+        "description": "Dynamic code evaluation using eval() or exec() allows arbitrary code execution.",
+        "suggestion": "Replace eval() with ast.literal_eval() for safe literal evaluation or dictionary lookup.",
+        "code_example": "import ast; value = ast.literal_eval(user_input)",
+        "confidence_score": 0.95,
+        "estimated_fix_minutes": 25
+      },
+      {
+        "severity": "HIGH",
+        "category": "Security",
+        "file_path": "sample_script.js",
+        "line_number": 11,
+        "title": "Dynamic Code Execution (eval/exec)",
+        "description": "Use of eval() or exec() can allow arbitrary code execution vulnerabilities.",
+        "suggestion": "Replace dynamic code execution with safe dictionary mapping or ast.literal_eval.",
+        "code_example": null,
+        "confidence_score": 0.9,
+        "estimated_fix_minutes": 15
+      }
+    ]
+  },
+  "sample_vulnerable.py": {
+    "file_path": "sample_vulnerable.py",
+    "sha256": "d8371e86d4d487f38d9d7ecb8eeac3a1407bb2838b846e9e9b11fb1a07c3aee5",
+    "issues": [
+      {
+        "severity": "HIGH",
+        "category": "Security",
+        "file_path": "sample_vulnerable.py",
+        "line_number": 11,
+        "title": "Potential SQL Injection Vulnerability",
+        "description": "String concatenation or f-string interpolation detected inside SQL query string.",
+        "suggestion": "Use parameterized query placeholders or ORM bindings (e.g. cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))).",
+        "code_example": "cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))",
+        "confidence_score": 0.95,
+        "estimated_fix_minutes": 20
+      },
+      {
+        "severity": "HIGH",
+        "category": "Security",
+        "file_path": "sample_vulnerable.py",
+        "line_number": 3,
+        "title": "Hardcoded Credential or API Secret",
+        "description": "Plaintext password, API key, or secret token detected in source code.",
+        "suggestion": "Store secrets in environment variables (os.environ) or an external secret manager.",
+        "code_example": "api_key = os.getenv('API_KEY')",
+        "confidence_score": 0.9,
+        "estimated_fix_minutes": 15
+      },
+      {
+        "severity": "HIGH",
+        "category": "Security",
+        "file_path": "sample_vulnerable.py",
+        "line_number": 20,
+        "title": "Unsafe Code Execution (eval/exec)",
+        "description": "Dynamic code evaluation using eval() or exec() allows arbitrary code execution.",
+        "suggestion": "Replace eval() with ast.literal_eval() for safe literal evaluation or dictionary lookup.",
+        "code_example": "import ast; value = ast.literal_eval(user_input)",
+        "confidence_score": 0.95,
+        "estimated_fix_minutes": 25
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "Quality",
+        "file_path": "sample_vulnerable.py",
+        "line_number": 1,
+        "title": "Silently Swallowed Exception",
+        "description": "Broad exception block with 'pass' hides unexpected errors during execution.",
+        "suggestion": "Catch specific exception types and log error details.",
+        "code_example": "except ValueError as e:\n    logger.error(f'Validation error: {e}')",
+        "confidence_score": 0.9,
+        "estimated_fix_minutes": 15
+      },
+      {
+        "severity": "HIGH",
+        "category": "Security",
+        "file_path": "sample_vulnerable.py",
+        "line_number": 11,
+        "title": "Potential SQL Injection",
+        "description": "String concatenation or interpolation detected in SQL query construction.",
+        "suggestion": "Use parameterized queries or ORM bindings (e.g., cursor.execute('SELECT * FROM users WHERE id = ?', (user_id,))).",
+        "code_example": null,
+        "confidence_score": 0.9,
+        "estimated_fix_minutes": 15
+      },
+      {
+        "severity": "HIGH",
+        "category": "Security",
+        "file_path": "sample_vulnerable.py",
+        "line_number": 3,
+        "title": "Hardcoded Credentials / Secret",
+        "description": "Sensitive secret, API key, or password appears to be hardcoded in source file.",
+        "suggestion": "Move secret to environment variables (`os.getenv(...)`) or external secret manager.",
+        "code_example": null,
+        "confidence_score": 0.9,
+        "estimated_fix_minutes": 15
+      },
+      {
+        "severity": "HIGH",
+        "category": "Security",
+        "file_path": "sample_vulnerable.py",
+        "line_number": 12,
+        "title": "Dynamic Code Execution (eval/exec)",
+        "description": "Use of eval() or exec() can allow arbitrary code execution vulnerabilities.",
+        "suggestion": "Replace dynamic code execution with safe dictionary mapping or ast.literal_eval.",
+        "code_example": null,
+        "confidence_score": 0.9,
+        "estimated_fix_minutes": 15
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "Bug",
+        "file_path": "sample_vulnerable.py",
+        "line_number": 4,
+        "title": "Silently Swallowed Exception",
+        "description": "Broad exception handler with 'pass' hides runtime errors and makes debugging extremely difficult.",
+        "suggestion": "Catch specific exception types and log the exception details properly.",
+        "code_example": null,
+        "confidence_score": 0.9,
+        "estimated_fix_minutes": 15
+      }
+    ]
+  },
+  "app.py": {
+    "file_path": "app.py",
+    "sha256": "7bcf6e1bebc5b1e353c3ba62f2ffeceeeff8a9f36a521943cd24b34e7a7388b5",
+    "issues": []
+  },
+  "utils.py": {
+    "file_path": "utils.py",
+    "sha256": "552de4ff6e29c9a17522f138239dd299e4d6f95ef7e0979e4ef772c892a62533",
+    "issues": []
+  },
+  "test_app.py": {
+    "file_path": "test_app.py",
+    "sha256": "cd14466f9a65ff0ae4971b8bd152cd2fadeb5c372ededebdfdd73538f4472f06",
+    "issues": []
   }
 }

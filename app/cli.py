@@ -290,5 +290,15 @@ def main(
         raise typer.Exit(code=1)
 
 
+@app.command()
+def history(
+    limit: int = typer.Option(10, "--limit", "-n", help="Number of historical review runs to display."),
+):
+    """View historical project health scores and technical debt trend."""
+    from app.history import HistoryManager
+    manager = HistoryManager()
+    manager.render_history_table(limit=limit)
+
+
 if __name__ == "__main__":
     app()

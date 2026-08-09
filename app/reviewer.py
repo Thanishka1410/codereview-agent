@@ -10,6 +10,7 @@ from app.ai.factory import get_ai_provider
 from app.static_analysis import StaticAnalyzer
 from app.cache import FileCacheManager
 from app.rag import RAGEngine
+from app.history import HistoryManager
 
 
 class HealthScores(BaseModel):
@@ -162,6 +163,27 @@ class ReviewerEngine:
             total_lines=scan_result.total_lines,
             scan_result=scan_result,
         )
+
+        # Auto-record review run into local SQLite history database
+        try:
+            history_mgr = HistoryManager()
+            history_mgr.record_review(
+                target_path=str(target),
+                overall_score=scores.overall_score,
+                security_score=scores.security_score,
+                maintainability_score=scores.maintainability_score,
+                quality_score=scores.code_quality_score,
+                performance_score=scores.performance_score,
+                doc_score=scores.documentation_score,
+                test_score=scores.testing_score,
+                total_files=scan_result.total_files,
+                total_issues=len(all_issues),
+                high_issues=high_cnt,
+                technical_debt_hours=scores.estimated_technical_debt_hours,
+                branch=git_info.current_branch,
+            )
+        except Exception:
+            pass
 
         return ProjectReviewResult(
             scan_result=scan_result,

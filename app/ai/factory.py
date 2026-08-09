@@ -5,6 +5,7 @@ from app.ai.mock_provider import MockAIProvider
 from app.ai.openai_provider import OpenAIProvider
 from app.ai.gemini_provider import GeminiProvider
 from app.ai.claude_provider import ClaudeProvider
+from app.ai.ollama_provider import OllamaProvider
 from app.config import ReviewConfig
 
 
@@ -17,6 +18,13 @@ def get_ai_provider(config: ReviewConfig) -> BaseAIProvider:
 
     if provider_name == "mock":
         return MockAIProvider(model=config.model)
+
+    if provider_name in ("ollama", "local"):
+        return OllamaProvider(
+            model=config.model or "deepseek-coder:6.7b",
+            ollama_host=getattr(config, "ollama_host", "http://localhost:11434"),
+            temperature=config.temperature,
+        )
 
     if provider_name == "openai":
         if not config.api_key:

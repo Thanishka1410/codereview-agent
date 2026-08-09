@@ -37,6 +37,7 @@ class ReviewConfig(BaseModel):
     use_rag: bool = Field(default=False, description="Enable RAG context indexing")
     docs_dir: Optional[str] = Field(default=None, description="Path to documentation folder for RAG")
     verbose: bool = Field(default=False, description="Enable verbose logging output")
+    ollama_host: str = Field(default="http://localhost:11434", description="Ollama local API host URL")
     custom_rules: List[CustomRule] = Field(default_factory=list, description="User-defined custom static analysis rules")
 
 
