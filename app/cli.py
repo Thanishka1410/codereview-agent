@@ -65,8 +65,8 @@ def _run_review_with_progress(engine: ReviewerEngine, target_path: Path, diff: b
         )
 
 
-@app.command()
-def main(
+@app.command("review")
+def review(
     path: str = typer.Argument(
         ".",
         help="Target folder or file to review (e.g. '.', 'src/', 'app.py')",
@@ -300,5 +300,15 @@ def history(
     manager.render_history_table(limit=limit)
 
 
-if __name__ == "__main__":
+def main_entrypoint():
+    """CLI entrypoint wrapper ensuring backward compatibility for positional path arguments."""
+    known_subcommands = {"history", "review", "help", "--help", "-h", "version", "--version", "-V"}
+    if len(sys.argv) == 1:
+        sys.argv.insert(1, "review")
+    elif len(sys.argv) > 1 and not sys.argv[1].startswith("-") and sys.argv[1] not in known_subcommands:
+        sys.argv.insert(1, "review")
     app()
+
+
+if __name__ == "__main__":
+    main_entrypoint()

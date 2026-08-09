@@ -28,7 +28,7 @@ dev = [
 ]
 
 [project.scripts]
-codereview = "app.cli:app"
+codereview = "app.cli:main_entrypoint"
 
 [tool.setuptools.packages.find]
 where = ["."]
