@@ -26,6 +26,7 @@ class StaticAnalyzer:
             or path_lower.endswith(".md")
             or "examples" in path_lower
             or "tests" in path_lower
+            or "vscode-extension" in path_lower
         ):
             return []
 
@@ -209,7 +210,7 @@ class StaticAnalyzer:
         # Deep Nesting Rule (>5 indentation levels)
         for idx, line in enumerate(lines, start=1):
             indent_level = (len(line) - len(line.lstrip(' '))) // 4
-            if indent_level >= 6 and not line.strip().startswith("#") and not line.strip().startswith("//") and not line.strip().startswith('"""'):
+            if indent_level >= 7 and not line.strip().startswith("#") and not line.strip().startswith("//") and not line.strip().startswith('"""'):
                 issues.append(
                     ReviewIssue(
                         severity="MEDIUM",

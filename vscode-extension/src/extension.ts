@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { exec } from 'child_process';
+import { execFile } from 'child_process';
 
 interface ReviewIssue {
     severity: string;
@@ -45,9 +45,9 @@ function runCodeReview(document: vscode.TextDocument) {
     const config = vscode.workspace.getConfiguration('codereview');
     const executable = config.get<string>('executablePath', 'codereview');
 
-    const cmd = `"${executable}" "${filePath}" --json --quiet`;
+    const args = [filePath, '--json', '--quiet'];
 
-    exec(cmd, { maxBuffer: 1024 * 1024 * 5 }, (error, stdout, stderr) => {
+    execFile(executable, args, { maxBuffer: 1024 * 1024 * 5 }, (error, stdout) => {
         if (error && !stdout) {
             return;
         }

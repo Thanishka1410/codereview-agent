@@ -40,6 +40,21 @@ class ReviewConfig(BaseModel):
     custom_rules: List[CustomRule] = Field(default_factory=list, description="User-defined custom static analysis rules")
 
 
+def _parse_custom_rules_from_dict(file_data: dict) -> List[CustomRule]:
+    """Parse custom rules array from configuration dictionary."""
+    rules_sec = file_data.get("rules", {})
+    raw_rules = []
+    if isinstance(rules_sec, dict) and "custom" in rules_sec:
+        raw_rules = rules_sec["custom"]
+    elif "custom_rules" in file_data:
+        raw_rules = file_data["custom_rules"]
+
+    if not isinstance(raw_rules, list):
+        return []
+
+    return [CustomRule(**item) for item in raw_rules if isinstance(item, dict)]
+
+
 def load_config(config_path: Optional[str] = None) -> ReviewConfig:
     """
     Load configuration by merging defaults, configuration files (.codereview.toml),
@@ -56,33 +71,19 @@ def load_config(config_path: Optional[str] = None) -> ReviewConfig:
     ])
 
     for path in paths_to_check:
-        if path.is_file():
-            try:
-                with open(path, "rb") as f:
-                    file_data = tomllib.load(f)
-                    codereview_sec = file_data.get("codereview", {})
-                    review_sec = file_data.get("review", {})
-                    config_dict.update(codereview_sec)
-                    config_dict.update(review_sec)
-
-                    # Parse custom rules under [[rules.custom]] or [rules] or [custom_rules]
-                    rules_sec = file_data.get("rules", {})
-                    raw_custom_rules = []
-                    if isinstance(rules_sec, dict) and "custom" in rules_sec:
-                        raw_custom_rules = rules_sec["custom"]
-                    elif "custom_rules" in file_data:
-                        raw_custom_rules = file_data["custom_rules"]
-
-                    if raw_custom_rules and isinstance(raw_custom_rules, list):
-                        parsed_rules = []
-                        for rule_item in raw_custom_rules:
-                            if isinstance(rule_item, dict):
-                                parsed_rules.append(CustomRule(**rule_item))
-                        config_dict["custom_rules"] = parsed_rules
-
-                break
-            except Exception as e:
-                print(f"Warning: Failed to parse config file at {path}: {e}", file=sys.stderr)
+        if not path.is_file():
+            continue
+        try:
+            with open(path, "rb") as f:
+                file_data = tomllib.load(f)
+                config_dict.update(file_data.get("codereview", {}))
+                config_dict.update(file_data.get("review", {}))
+                custom_rules = _parse_custom_rules_from_dict(file_data)
+                if custom_rules:
+                    config_dict["custom_rules"] = custom_rules
+            break
+        except Exception as e:
+            print(f"Warning: Failed to parse config file at {path}: {e}", file=sys.stderr)
 
     if os.getenv("CODEREVIEW_PROVIDER"):
         config_dict["provider"] = os.getenv("CODEREVIEW_PROVIDER")

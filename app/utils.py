@@ -77,9 +77,8 @@ def _process_ast_node(node: ast.AST, imports: List[str], functions: List[str], m
                 decorators.append(dec.func.id)
     elif isinstance(node, ast.ClassDef):
         classes.append(node.name)
-        for item in node.body:
-            if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                methods.append(f"{node.name}.{item.name}")
+        method_names = [f"{node.name}.{item.name}" for item in node.body if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef))]
+        methods.extend(method_names)
     elif isinstance(node, ast.Assign):
         for target in node.targets:
             if isinstance(target, ast.Name) and (target.id.isupper() or target.id.startswith("GLOBAL_")):

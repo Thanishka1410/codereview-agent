@@ -24,6 +24,28 @@ class CustomRulesEngine:
     def __init__(self, rules: Optional[List[CustomRule]] = None):
         self.rules: List[CustomRule] = rules or []
 
+    def _evaluate_rule(self, rule: CustomRule, lines: List[str], relative_path: str) -> Optional[ReviewIssue]:
+        """Evaluate a single rule against source lines."""
+        try:
+            compiled = re.compile(rule.pattern, re.IGNORECASE)
+            for idx, line in enumerate(lines, start=1):
+                if compiled.search(line):
+                    return ReviewIssue(
+                        severity=rule.severity.upper(),
+                        category=rule.category,
+                        file_path=relative_path,
+                        line_number=idx,
+                        title=rule.title,
+                        description=rule.message,
+                        suggestion=rule.suggestion,
+                        code_example=rule.code_example,
+                        confidence_score=0.90,
+                        estimated_fix_minutes=15,
+                    )
+        except re.error:
+            return None
+        return None
+
     def evaluate_file(self, code: str, lines: List[str], relative_path: str, language: str) -> List[ReviewIssue]:
         """Evaluate a file against all configured custom rules."""
         issues: List[ReviewIssue] = []
@@ -31,30 +53,10 @@ class CustomRulesEngine:
             return issues
 
         for rule in self.rules:
-            # Check language filter
             if rule.languages and language.lower() not in [l.lower() for l in rule.languages]:
                 continue
-
-            try:
-                compiled = re.compile(rule.pattern, re.IGNORECASE)
-                for idx, line in enumerate(lines, start=1):
-                    if compiled.search(line):
-                        issues.append(
-                            ReviewIssue(
-                                severity=rule.severity.upper(),
-                                category=rule.category,
-                                file_path=relative_path,
-                                line_number=idx,
-                                title=rule.title,
-                                description=rule.message,
-                                suggestion=rule.suggestion,
-                                code_example=rule.code_example,
-                                confidence_score=0.90,
-                                estimated_fix_minutes=15,
-                            )
-                        )
-                        break  # Report once per file per rule
-            except re.error:
-                continue
+            issue = self._evaluate_rule(rule, lines, relative_path)
+            if issue:
+                issues.append(issue)
 
         return issues
