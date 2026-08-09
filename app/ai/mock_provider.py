@@ -1,3 +1,7 @@
+"""
+Offline Mock AI Provider generating static review findings without external API dependencies.
+"""
+
 import json
 import re
 from typing import List, Optional

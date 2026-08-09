@@ -1,3 +1,7 @@
+"""
+Retrieval-Augmented Generation (RAG) engine for indexing project documentation and injecting semantic context into LLM prompts.
+"""
+
 import math
 import re
 from pathlib import Path
@@ -11,6 +15,19 @@ class DocumentChunk(BaseModel):
     file_path: str
     heading: str
     text: str
+
+
+def _build_doc_chunk(relative_path: str, idx: int, heading: str, lines: List[str]) -> Optional[DocumentChunk]:
+    """Helper function to build a DocumentChunk from collected lines."""
+    text_block = "\n".join(lines).strip()
+    if not text_block:
+        return None
+    return DocumentChunk(
+        chunk_id=f"{relative_path}#{idx}",
+        file_path=relative_path,
+        heading=heading,
+        text=text_block,
+    )
 
 
 class TFIDFVectorIndex:
@@ -157,31 +174,17 @@ class RAGEngine:
                 continue
 
             if current_lines:
-                text_block = "\n".join(current_lines).strip()
-                if text_block:
-                    chunks.append(
-                        DocumentChunk(
-                            chunk_id=f"{relative_path}#{chunk_idx}",
-                            file_path=relative_path,
-                            heading=current_heading,
-                            text=text_block,
-                        )
-                    )
+                doc_chunk = _build_doc_chunk(relative_path, chunk_idx, current_heading, current_lines)
+                if doc_chunk:
+                    chunks.append(doc_chunk)
                     chunk_idx += 1
                 current_lines = []
             current_heading = line.lstrip("#").strip()
 
         if current_lines:
-            text_block = "\n".join(current_lines).strip()
-            if text_block:
-                chunks.append(
-                    DocumentChunk(
-                        chunk_id=f"{relative_path}#{chunk_idx}",
-                        file_path=relative_path,
-                        heading=current_heading,
-                        text=text_block,
-                    )
-                )
+            doc_chunk = _build_doc_chunk(relative_path, chunk_idx, current_heading, current_lines)
+            if doc_chunk:
+                chunks.append(doc_chunk)
 
         return chunks
 

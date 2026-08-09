@@ -1,3 +1,7 @@
+"""
+Anthropic Claude AI Provider implementation for CodeReview Agent.
+"""
+
 import json
 from typing import List, Optional
 import requests

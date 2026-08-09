@@ -16,47 +16,47 @@
   },
   "app\\ai\\base.py": {
     "file_path": "app\\ai\\base.py",
-    "sha256": "6187ff5cea0fbf413909778410876fab8b53c2e562fd748c0e22de0e61c48fb0",
+    "sha256": "f89a90b55a0d6b7442afa8c37d6be0f0690eda808099a5f8d1391347891b0ccd",
     "issues": []
   },
   "app\\ai\\claude_provider.py": {
     "file_path": "app\\ai\\claude_provider.py",
-    "sha256": "46f1b40ea486526b04cc1fd150458e39d26712e3a4c002c48770aed408a419d5",
+    "sha256": "842fa928bce96df79d6e577fabb74d3c50bdc7c730c06d4f5cf7c412b67def7d",
     "issues": []
   },
   "app\\ai\\factory.py": {
     "file_path": "app\\ai\\factory.py",
-    "sha256": "6dc4aa4a575412d74f41dfd6e03ab38dc63f6922d841211ee00e997fd71f3736",
+    "sha256": "e23ea478de0403c94f505605a2b30541138316ba0ca44acc6b0ef39dca3df8dc",
     "issues": []
   },
   "app\\ai\\gemini_provider.py": {
     "file_path": "app\\ai\\gemini_provider.py",
-    "sha256": "093d572bf7b40c75a05f230017431269a261b8d1a9dbae93294e4cd3b33618d9",
+    "sha256": "8b551ef867433d32a1b558439e4a479e9f4acc9626b857ccab75c5e653414473",
     "issues": []
   },
   "app\\ai\\mock_provider.py": {
     "file_path": "app\\ai\\mock_provider.py",
-    "sha256": "0ad7fb4db800cb1618d037b532372c70795090c4a43922418f5763248c16249e",
+    "sha256": "faaadfafe52bef03139da6ea43d056e2d5194c48735dde3a88af010ddd6541eb",
     "issues": []
   },
   "app\\ai\\ollama_provider.py": {
     "file_path": "app\\ai\\ollama_provider.py",
-    "sha256": "00a42e4381eeda10a1cf70d75ffba906a37b06d188746adf59638b1159303a21",
+    "sha256": "73df3d95f74391767320733637a3d7be9b3348364bc4cdbc6b41a707b52772cd",
     "issues": []
   },
   "app\\ai\\openai_provider.py": {
     "file_path": "app\\ai\\openai_provider.py",
-    "sha256": "6d650b07347849b27eff91837f1c038fee58f067cd53ab4f187aa966841ca8f5",
+    "sha256": "c86cd767b3aaf5de773d38690e4440cde023263adbbcd9363e8522fc57427289",
     "issues": []
   },
   "app\\cache.py": {
     "file_path": "app\\cache.py",
-    "sha256": "8f7a69143a5605905c0d266140d2d80cc7dff2be6bbf7444fb158a5976c07468",
+    "sha256": "2687d67d1840666be1ccf974f64dcdda22188243ed8bd3f1cbb111f7f0216600",
     "issues": []
   },
   "app\\cli.py": {
     "file_path": "app\\cli.py",
-    "sha256": "71909d0fc7e99e1f72fee4afa742b54e31127199c8b3c82feba8f4ff6d61cf8e",
+    "sha256": "48a397fd8160e1393f843ff0d42a2703611090ac67dab5cab9e0f354177f254f",
     "issues": []
   },
   "app\\config.py": {
@@ -66,12 +66,12 @@
   },
   "app\\context.py": {
     "file_path": "app\\context.py",
-    "sha256": "dc3e8bbfebd753bb2b3ba4d8bc2dc71eac63d1b78ae6428733d47bc8ada6c14b",
+    "sha256": "d3c07542e56da84af938ac617f91ae9b3a61b3b148a7e92328dee936b7fea7c1",
     "issues": []
   },
   "app\\custom_rules.py": {
     "file_path": "app\\custom_rules.py",
-    "sha256": "6c215222e5ad1354d6d522c89f1ca7c7876c8f853454c1af0d741d9e0d3cd81a",
+    "sha256": "dd294a7a4b5634c5600344fe221b25392f8d97a1c6cd20de0ba8fd8671b7b36c",
     "issues": []
   },
   "app\\formatter.py": {
@@ -86,8 +86,26 @@
   },
   "app\\history.py": {
     "file_path": "app\\history.py",
-    "sha256": "37c6e4bc98ff5f44c46748bfdcbb6e0d04c747e5e0b10155e8b0dea6c66d06ff",
+    "sha256": "f8becef38b4dadbbce5b19049596eb0074c5261bb42796935214b9bdb586d1d3",
     "issues": []
+  },
+  "app\\hooks.py": {
+    "file_path": "app\\hooks.py",
+    "sha256": "bcbd5f2c033f73d440a33e3d2bdf2ed15345b0fa6d90252ebb658c7bba9fc51b",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "Quality",
+        "file_path": "app\\hooks.py",
+        "line_number": 1,
+        "title": "Silently Swallowed Exception",
+        "description": "Broad exception block with 'pass' hides unexpected errors during execution.",
+        "suggestion": "Catch specific exception types and log error details.",
+        "code_example": "except ValueError as e:\n    logger.error(f'Validation error: {e}')",
+        "confidence_score": 0.9,
+        "estimated_fix_minutes": 15
+      }
+    ]
   },
   "app\\prompts.py": {
     "file_path": "app\\prompts.py",
@@ -96,21 +114,8 @@
   },
   "app\\rag.py": {
     "file_path": "app\\rag.py",
-    "sha256": "5e5f3153e026f1482c443e5c329f9749af0c22901ffeec49357ca72829864aac",
-    "issues": [
-      {
-        "severity": "MEDIUM",
-        "category": "Quality",
-        "file_path": "app\\rag.py",
-        "line_number": 164,
-        "title": "Deep Nesting Level (7 levels)",
-        "description": "Deeply nested code block at line 164 reduces readability and increases cognitive complexity.",
-        "suggestion": "Refactor nested conditionals using guard clauses or break logic into helper functions.",
-        "code_example": "if not condition:\n    return\n# Main logic continues here",
-        "confidence_score": 0.85,
-        "estimated_fix_minutes": 25
-      }
-    ]
+    "sha256": "dcf4746065a69cef2462074772c3182665623cfda0e185178fe932fb3e43b6df",
+    "issues": []
   },
   "app\\report.py": {
     "file_path": "app\\report.py",
@@ -188,6 +193,11 @@
   "tests\\test_github.py": {
     "file_path": "tests\\test_github.py",
     "sha256": "315b7667cdd7d338fad4b2542e20d69fddde9724c3e39d6301cdf150b4976fac",
+    "issues": []
+  },
+  "tests\\test_hooks.py": {
+    "file_path": "tests\\test_hooks.py",
+    "sha256": "f047b0ac99d576055f6b98743c57001d2e5972af700ee5425795a9615c603cf5",
     "issues": []
   },
   "tests\\test_ollama_and_history.py": {

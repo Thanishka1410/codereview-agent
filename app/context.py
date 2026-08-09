@@ -1,3 +1,7 @@
+"""
+Code context summarizer and AST signature builder for optimizing prompt context windows.
+"""
+
 import ast
 from typing import List, Dict, Optional
 

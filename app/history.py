@@ -1,3 +1,7 @@
+"""
+SQLite historical quality analytics manager for tracking project health scores and technical debt over time.
+"""
+
 import sqlite3
 from pathlib import Path
 from datetime import datetime

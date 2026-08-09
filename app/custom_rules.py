@@ -1,3 +1,7 @@
+"""
+Custom static analysis rules engine for loading user-defined regex patterns and rules from configuration.
+"""
+
 import re
 from pathlib import Path
 from typing import List, Optional, Any, Dict

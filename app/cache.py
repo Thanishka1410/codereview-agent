@@ -1,3 +1,7 @@
+"""
+File cache manager using SHA-256 hashes to bypass redundant AI provider API calls for unchanged files.
+"""
+
 import hashlib
 import json
 from pathlib import Path

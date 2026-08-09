@@ -1,3 +1,7 @@
+"""
+Abstract base class and data models for AI Code Review Providers and findings.
+"""
+
 from abc import ABC, abstractmethod
 from typing import List, Optional
 from pydantic import BaseModel, Field

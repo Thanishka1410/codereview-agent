@@ -1,3 +1,7 @@
+"""
+AI Provider Factory module for instantiating OpenAI, Gemini, Claude, Ollama, or Mock AI Providers.
+"""
+
 import sys
 from typing import Optional
 from app.ai.base import BaseAIProvider

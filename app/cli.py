@@ -297,12 +297,36 @@ def history(
     """View historical project health scores and technical debt trend."""
     from app.history import HistoryManager
     manager = HistoryManager()
-    manager.render_history_table(limit=limit)
+@app.command("install-hook")
+def install_hook():
+    """Install automated Git pre-commit hook in local repository."""
+    from app.hooks import GitHookManager
+    try:
+        manager = GitHookManager()
+        hook_path = manager.install_pre_commit_hook()
+        console.print(f"[bold green]Successfully installed Git pre-commit hook at:[/bold green] [dim]{hook_path}[/dim]")
+    except Exception as e:
+        Console(stderr=True).print(f"[bold red]Failed to install Git hook:[/bold red] {e}")
+        raise typer.Exit(code=1)
+
+
+@app.command("uninstall-hook")
+def uninstall_hook():
+    """Uninstall Git pre-commit hook from local repository."""
+    from app.hooks import GitHookManager
+    manager = GitHookManager()
+    if manager.uninstall_pre_commit_hook():
+        console.print("[bold green]Successfully uninstalled Git pre-commit hook.[/bold green]")
+    else:
+        console.print("[yellow]No Git pre-commit hook found to uninstall.[/yellow]")
 
 
 def main_entrypoint():
     """CLI entrypoint wrapper ensuring backward compatibility for positional path arguments."""
-    known_subcommands = {"history", "review", "help", "--help", "-h", "version", "--version", "-V"}
+    known_subcommands = {
+        "history", "review", "install-hook", "uninstall-hook",
+        "help", "--help", "-h", "version", "--version", "-V"
+    }
     if len(sys.argv) == 1:
         sys.argv.insert(1, "review")
     elif len(sys.argv) > 1 and not sys.argv[1].startswith("-") and sys.argv[1] not in known_subcommands:

@@ -1,3 +1,7 @@
+"""
+Local LLM provider integration for offline code review via Ollama REST API.
+"""
+
 import json
 from typing import List, Optional
 import requests

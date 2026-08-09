@@ -1,3 +1,7 @@
+"""
+OpenAI AI Provider implementation for CodeReview Agent.
+"""
+
 import json
 import re
 from typing import List, Optional
