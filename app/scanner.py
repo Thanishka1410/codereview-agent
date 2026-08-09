@@ -82,7 +82,7 @@ class Scanner:
         )
         self.ignored_files: Set[str] = set(
             ignored_files
-            or ["package-lock.json", "yarn.lock", "poetry.lock", "Pipfile.lock", ".codereview_cache.json"]
+            or ["package-lock.json", "yarn.lock", "poetry.lock", "Pipfile.lock", ".codereview_cache.json", ".codereview_history.db"]
         )
         self.include_patterns = include_patterns or []
         self.exclude_patterns = exclude_patterns or []

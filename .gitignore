@@ -24,6 +24,10 @@ MANIFEST
 
 # Pytest / Coverage / Tooling
 .pytest_cache/
+# Cache & History DB
+.codereview_cache.json
+.codereview_history.db
+*.db
 .coverage
 .coverage.*
 htmlcov/
