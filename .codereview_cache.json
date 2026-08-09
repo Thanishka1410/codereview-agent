@@ -26,7 +26,7 @@
   },
   "app\\ai\\factory.py": {
     "file_path": "app\\ai\\factory.py",
-    "sha256": "f42e4cc8c554dfe59f2682d7c1516d9e62ec42d164610de1babef12bbfb331ac",
+    "sha256": "6dc4aa4a575412d74f41dfd6e03ab38dc63f6922d841211ee00e997fd71f3736",
     "issues": []
   },
   "app\\ai\\gemini_provider.py": {
@@ -36,7 +36,12 @@
   },
   "app\\ai\\mock_provider.py": {
     "file_path": "app\\ai\\mock_provider.py",
-    "sha256": "8d66a110af3727c3a77325fa54974a378d6c21b489790d839a6a1acfa9983d27",
+    "sha256": "0ad7fb4db800cb1618d037b532372c70795090c4a43922418f5763248c16249e",
+    "issues": []
+  },
+  "app\\ai\\ollama_provider.py": {
+    "file_path": "app\\ai\\ollama_provider.py",
+    "sha256": "00a42e4381eeda10a1cf70d75ffba906a37b06d188746adf59638b1159303a21",
     "issues": []
   },
   "app\\ai\\openai_provider.py": {
@@ -51,12 +56,12 @@
   },
   "app\\cli.py": {
     "file_path": "app\\cli.py",
-    "sha256": "b3a05ec70614b4047e75e01e3f42f1a4a8c53e7a7dd8116bb5e5ca1d68d601c3",
+    "sha256": "71909d0fc7e99e1f72fee4afa742b54e31127199c8b3c82feba8f4ff6d61cf8e",
     "issues": []
   },
   "app\\config.py": {
     "file_path": "app\\config.py",
-    "sha256": "c3721ef93856843f821e31217496be04fa6a7247e97aba2e3d34bc1c4d466560",
+    "sha256": "1875b1e769a6fee581d92cdfa820022e711423806356a119ff1fc378f685b9e0",
     "issues": []
   },
   "app\\context.py": {
@@ -77,6 +82,11 @@
   "app\\github.py": {
     "file_path": "app\\github.py",
     "sha256": "da7d7743658638e7cb8e922706392cd6213563841179082f154c03092f518c38",
+    "issues": []
+  },
+  "app\\history.py": {
+    "file_path": "app\\history.py",
+    "sha256": "37c6e4bc98ff5f44c46748bfdcbb6e0d04c747e5e0b10155e8b0dea6c66d06ff",
     "issues": []
   },
   "app\\prompts.py": {
@@ -109,17 +119,17 @@
   },
   "app\\reviewer.py": {
     "file_path": "app\\reviewer.py",
-    "sha256": "820809892ee6ef7e9d658457684b118162b1214bd4cc0a4d70df1d80206c0500",
+    "sha256": "0cbb8d8b37cc0439ead12d2faf646bdfc65b28b3e48e18b395a574bf0f1b28c5",
     "issues": []
   },
   "app\\scanner.py": {
     "file_path": "app\\scanner.py",
-    "sha256": "37767298cb1ade0d90ab3aa6e59109f9d9905cf3a62a01a6cf72aeb1b24b12b3",
+    "sha256": "b395eb7d0f24724bad9eb924317a52ae88fb6feab495257b4ffb030348e40199",
     "issues": []
   },
   "app\\static_analysis.py": {
     "file_path": "app\\static_analysis.py",
-    "sha256": "d7d452195a2ce1689d5a6b5b13194c5a309fdbadf49b076110d6a575d0e60e41",
+    "sha256": "ba070b1ea4ee15b5b97ea0fb6dab71954e701329bf398d323c3d3b9203756e0a",
     "issues": []
   },
   "app\\templates.py": {
@@ -180,6 +190,11 @@
     "sha256": "315b7667cdd7d338fad4b2542e20d69fddde9724c3e39d6301cdf150b4976fac",
     "issues": []
   },
+  "tests\\test_ollama_and_history.py": {
+    "file_path": "tests\\test_ollama_and_history.py",
+    "sha256": "fc5576a08ecf0ad60d09fae47b364ea2ab9da60df246f572b0cc675b4b64a014",
+    "issues": []
+  },
   "tests\\test_rag.py": {
     "file_path": "tests\\test_rag.py",
     "sha256": "f49cabcf068f8ceb2218b2f0bf8d161a945aaa4a8efa181c20d578ebc766bf3a",
@@ -218,171 +233,6 @@
   "vscode-extension\\tsconfig.json": {
     "file_path": "vscode-extension\\tsconfig.json",
     "sha256": "5a9786778912bde40b148e20041f27206dbd7a4f2b58a441b746f4162171f3f3",
-    "issues": []
-  },
-  "docs\\styleguide.md": {
-    "file_path": "docs\\styleguide.md",
-    "sha256": "5cbad1c0d5e66594f093571c7efe6e7096f95c10866b61557217c00850bc838b",
-    "issues": [
-      {
-        "severity": "HIGH",
-        "category": "Security",
-        "file_path": "docs\\styleguide.md",
-        "line_number": 9,
-        "title": "Dynamic Code Execution (eval/exec)",
-        "description": "Use of eval() or exec() can allow arbitrary code execution vulnerabilities.",
-        "suggestion": "Replace dynamic code execution with safe dictionary mapping or ast.literal_eval.",
-        "code_example": null,
-        "confidence_score": 0.9,
-        "estimated_fix_minutes": 15
-      }
-    ]
-  },
-  "sample_script.js": {
-    "file_path": "sample_script.js",
-    "sha256": "c8cfb135d0f59b4223f9808102008b4ff6041dd924d99a5f8bd2d40da6f586a9",
-    "issues": [
-      {
-        "severity": "HIGH",
-        "category": "Security",
-        "file_path": "sample_script.js",
-        "line_number": 12,
-        "title": "Unsafe Code Execution (eval/exec)",
-        "description": "Dynamic code evaluation using eval() or exec() allows arbitrary code execution.",
-        "suggestion": "Replace eval() with ast.literal_eval() for safe literal evaluation or dictionary lookup.",
-        "code_example": "import ast; value = ast.literal_eval(user_input)",
-        "confidence_score": 0.95,
-        "estimated_fix_minutes": 25
-      },
-      {
-        "severity": "HIGH",
-        "category": "Security",
-        "file_path": "sample_script.js",
-        "line_number": 11,
-        "title": "Dynamic Code Execution (eval/exec)",
-        "description": "Use of eval() or exec() can allow arbitrary code execution vulnerabilities.",
-        "suggestion": "Replace dynamic code execution with safe dictionary mapping or ast.literal_eval.",
-        "code_example": null,
-        "confidence_score": 0.9,
-        "estimated_fix_minutes": 15
-      }
-    ]
-  },
-  "sample_vulnerable.py": {
-    "file_path": "sample_vulnerable.py",
-    "sha256": "d8371e86d4d487f38d9d7ecb8eeac3a1407bb2838b846e9e9b11fb1a07c3aee5",
-    "issues": [
-      {
-        "severity": "HIGH",
-        "category": "Security",
-        "file_path": "sample_vulnerable.py",
-        "line_number": 11,
-        "title": "Potential SQL Injection Vulnerability",
-        "description": "String concatenation or f-string interpolation detected inside SQL query string.",
-        "suggestion": "Use parameterized query placeholders or ORM bindings (e.g. cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))).",
-        "code_example": "cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))",
-        "confidence_score": 0.95,
-        "estimated_fix_minutes": 20
-      },
-      {
-        "severity": "HIGH",
-        "category": "Security",
-        "file_path": "sample_vulnerable.py",
-        "line_number": 3,
-        "title": "Hardcoded Credential or API Secret",
-        "description": "Plaintext password, API key, or secret token detected in source code.",
-        "suggestion": "Store secrets in environment variables (os.environ) or an external secret manager.",
-        "code_example": "api_key = os.getenv('API_KEY')",
-        "confidence_score": 0.9,
-        "estimated_fix_minutes": 15
-      },
-      {
-        "severity": "HIGH",
-        "category": "Security",
-        "file_path": "sample_vulnerable.py",
-        "line_number": 20,
-        "title": "Unsafe Code Execution (eval/exec)",
-        "description": "Dynamic code evaluation using eval() or exec() allows arbitrary code execution.",
-        "suggestion": "Replace eval() with ast.literal_eval() for safe literal evaluation or dictionary lookup.",
-        "code_example": "import ast; value = ast.literal_eval(user_input)",
-        "confidence_score": 0.95,
-        "estimated_fix_minutes": 25
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "Quality",
-        "file_path": "sample_vulnerable.py",
-        "line_number": 1,
-        "title": "Silently Swallowed Exception",
-        "description": "Broad exception block with 'pass' hides unexpected errors during execution.",
-        "suggestion": "Catch specific exception types and log error details.",
-        "code_example": "except ValueError as e:\n    logger.error(f'Validation error: {e}')",
-        "confidence_score": 0.9,
-        "estimated_fix_minutes": 15
-      },
-      {
-        "severity": "HIGH",
-        "category": "Security",
-        "file_path": "sample_vulnerable.py",
-        "line_number": 11,
-        "title": "Potential SQL Injection",
-        "description": "String concatenation or interpolation detected in SQL query construction.",
-        "suggestion": "Use parameterized queries or ORM bindings (e.g., cursor.execute('SELECT * FROM users WHERE id = ?', (user_id,))).",
-        "code_example": null,
-        "confidence_score": 0.9,
-        "estimated_fix_minutes": 15
-      },
-      {
-        "severity": "HIGH",
-        "category": "Security",
-        "file_path": "sample_vulnerable.py",
-        "line_number": 3,
-        "title": "Hardcoded Credentials / Secret",
-        "description": "Sensitive secret, API key, or password appears to be hardcoded in source file.",
-        "suggestion": "Move secret to environment variables (`os.getenv(...)`) or external secret manager.",
-        "code_example": null,
-        "confidence_score": 0.9,
-        "estimated_fix_minutes": 15
-      },
-      {
-        "severity": "HIGH",
-        "category": "Security",
-        "file_path": "sample_vulnerable.py",
-        "line_number": 12,
-        "title": "Dynamic Code Execution (eval/exec)",
-        "description": "Use of eval() or exec() can allow arbitrary code execution vulnerabilities.",
-        "suggestion": "Replace dynamic code execution with safe dictionary mapping or ast.literal_eval.",
-        "code_example": null,
-        "confidence_score": 0.9,
-        "estimated_fix_minutes": 15
-      },
-      {
-        "severity": "MEDIUM",
-        "category": "Bug",
-        "file_path": "sample_vulnerable.py",
-        "line_number": 4,
-        "title": "Silently Swallowed Exception",
-        "description": "Broad exception handler with 'pass' hides runtime errors and makes debugging extremely difficult.",
-        "suggestion": "Catch specific exception types and log the exception details properly.",
-        "code_example": null,
-        "confidence_score": 0.9,
-        "estimated_fix_minutes": 15
-      }
-    ]
-  },
-  "app.py": {
-    "file_path": "app.py",
-    "sha256": "7bcf6e1bebc5b1e353c3ba62f2ffeceeeff8a9f36a521943cd24b34e7a7388b5",
-    "issues": []
-  },
-  "utils.py": {
-    "file_path": "utils.py",
-    "sha256": "552de4ff6e29c9a17522f138239dd299e4d6f95ef7e0979e4ef772c892a62533",
-    "issues": []
-  },
-  "test_app.py": {
-    "file_path": "test_app.py",
-    "sha256": "cd14466f9a65ff0ae4971b8bd152cd2fadeb5c372ededebdfdd73538f4472f06",
     "issues": []
   }
 }

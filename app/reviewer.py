@@ -182,8 +182,9 @@ class ReviewerEngine:
                 technical_debt_hours=scores.estimated_technical_debt_hours,
                 branch=git_info.current_branch,
             )
-        except Exception:
-            pass
+        except Exception as e:
+            if self.config.verbose:
+                print(f"Warning: Failed to record review history: {e}", file=sys.stderr)
 
         return ProjectReviewResult(
             scan_result=scan_result,

@@ -26,9 +26,9 @@ class MockAIProvider(BaseAIProvider):
         code_lower = code.lower()
         norm_path = file_path.replace("\\", "/").lower()
 
-        # Skip false positives on mock rule definitions, test fixtures, and reports
+        # Skip false positives on mock rule definitions, test fixtures, templates, and reports
         is_fixture_or_meta = any(
-            p in norm_path for p in ["mock_provider.py", "static_analysis.py", "examples/", "tests/", "reports/"]
+            p in norm_path for p in ["mock_provider.py", "static_analysis.py", "history.py", "custom_rules.py", "templates.py", "examples/", "tests/", "reports/"]
         )
 
         # 1. Security Checks (Mock Rules)

@@ -70,10 +70,10 @@ class StaticAnalyzer:
 
         # SQL Injection
         sql_patterns = [
-            r'SELECT\s+.*?\s+FROM\s+.*?\+\s*',
+            r'SELECT\b[^\n]*?\bFROM\b[^\n]*?\+',
             r'cursor\.execute\s*\(\s*f["\']',
             r'cursor\.execute\s*\(\s*["\'].*?%s.*?["\']\s*%',
-            r'SELECT\s+.*?\s+WHERE\s+.*?\+\s*',
+            r'SELECT\b[^\n]*?\bWHERE\b[^\n]*?\+',
         ]
         for pat in sql_patterns:
             if re.search(pat, code, re.IGNORECASE):
