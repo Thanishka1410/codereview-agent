@@ -1,0 +1,58 @@
+{
+  "name": "codereview-agent-vscode",
+  "displayName": "CodeReview Agent AI",
+  "description": "Real-time AI code review & static security analysis for VS Code and Cursor",
+  "version": "1.1.0",
+  "publisher": "codereview-agent",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Linters",
+    "Programming Languages"
+  ],
+  "activationEvents": [
+    "onLanguage:python",
+    "onLanguage:javascript",
+    "onLanguage:typescript",
+    "onLanguage:typescriptreact",
+    "onLanguage:javascriptreact",
+    "onLanguage:java",
+    "onLanguage:go",
+    "onLanguage:rust"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "codereview.runFileReview",
+        "title": "CodeReview: Review Active File"
+      }
+    ],
+    "configuration": {
+      "title": "CodeReview Agent",
+      "properties": {
+        "codereview.executablePath": {
+          "type": "string",
+          "default": "codereview",
+          "description": "Path to the codereview CLI executable."
+        },
+        "codereview.runOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically run CodeReview Agent on file save."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^16.11.7",
+    "@types/vscode": "^1.75.0",
+    "typescript": "^4.9.4"
+  }
+}

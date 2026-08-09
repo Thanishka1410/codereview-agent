@@ -3,16 +3,20 @@ import re
 from pathlib import Path
 from typing import List, Optional
 from app.ai.base import ReviewIssue
+from app.custom_rules import CustomRule, CustomRulesEngine
 
 
 class StaticAnalyzer:
     """
     Production-Grade Rule-Based Static Analysis Engine.
-    Executes AST and regex-based checks for Security, Quality, Performance, and Architecture.
+    Executes AST, regex, and user-defined custom rules for Security, Quality, Performance, and Architecture.
     """
 
+    def __init__(self, custom_rules: Optional[List[CustomRule]] = None):
+        self.custom_engine = CustomRulesEngine(custom_rules or [])
+
     def analyze_file(self, file_path: Path, relative_path: str, code: str, language: str) -> List[ReviewIssue]:
-        """Analyze a single source file against static security and quality rules."""
+        """Analyze a single source file against static security, quality, and custom rules."""
         # Skip meta rule files, mock definitions, templates, markdown docs, and test fixtures
         path_lower = relative_path.lower()
         if (
@@ -45,6 +49,9 @@ class StaticAnalyzer:
 
         # 4. Architecture Rules
         issues.extend(self._check_architecture_rules(lines, relative_path, language))
+
+        # 5. User-Defined Custom Rules
+        issues.extend(self.custom_engine.evaluate_file(code, lines, relative_path, language))
 
         return issues
 

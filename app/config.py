@@ -3,6 +3,7 @@ import sys
 from pathlib import Path
 from typing import List, Optional
 from pydantic import BaseModel, Field
+from app.custom_rules import CustomRule
 
 if sys.version_info >= (3, 11):
     import tomllib
@@ -18,7 +19,7 @@ class ReviewConfig(BaseModel):
     temperature: float = Field(default=0.2, description="Sampling temperature")
     max_tokens: int = Field(default=2000, description="Max response tokens")
     language: str = Field(default="auto", description="Target language filter or auto")
-    
+
     ignored_folders: List[str] = Field(
         default_factory=lambda: [
             ".git", "venv", ".venv", "node_modules", "dist", "build",
@@ -36,6 +37,7 @@ class ReviewConfig(BaseModel):
     use_rag: bool = Field(default=False, description="Enable RAG context indexing")
     docs_dir: Optional[str] = Field(default=None, description="Path to documentation folder for RAG")
     verbose: bool = Field(default=False, description="Enable verbose logging output")
+    custom_rules: List[CustomRule] = Field(default_factory=list, description="User-defined custom static analysis rules")
 
 
 def load_config(config_path: Optional[str] = None) -> ReviewConfig:
@@ -45,7 +47,6 @@ def load_config(config_path: Optional[str] = None) -> ReviewConfig:
     """
     config_dict = {}
 
-    # 1. Search for .codereview.toml in current directory or specified path
     paths_to_check = []
     if config_path:
         paths_to_check.append(Path(config_path))
@@ -59,16 +60,30 @@ def load_config(config_path: Optional[str] = None) -> ReviewConfig:
             try:
                 with open(path, "rb") as f:
                     file_data = tomllib.load(f)
-                    # Merge [codereview] and [review] sections
                     codereview_sec = file_data.get("codereview", {})
                     review_sec = file_data.get("review", {})
                     config_dict.update(codereview_sec)
                     config_dict.update(review_sec)
+
+                    # Parse custom rules under [[rules.custom]] or [rules] or [custom_rules]
+                    rules_sec = file_data.get("rules", {})
+                    raw_custom_rules = []
+                    if isinstance(rules_sec, dict) and "custom" in rules_sec:
+                        raw_custom_rules = rules_sec["custom"]
+                    elif "custom_rules" in file_data:
+                        raw_custom_rules = file_data["custom_rules"]
+
+                    if raw_custom_rules and isinstance(raw_custom_rules, list):
+                        parsed_rules = []
+                        for rule_item in raw_custom_rules:
+                            if isinstance(rule_item, dict):
+                                parsed_rules.append(CustomRule(**rule_item))
+                        config_dict["custom_rules"] = parsed_rules
+
                 break
             except Exception as e:
                 print(f"Warning: Failed to parse config file at {path}: {e}", file=sys.stderr)
 
-    # 2. Environment variable overrides
     if os.getenv("CODEREVIEW_PROVIDER"):
         config_dict["provider"] = os.getenv("CODEREVIEW_PROVIDER")
     if os.getenv("CODEREVIEW_MODEL"):

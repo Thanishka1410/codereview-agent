@@ -54,7 +54,7 @@ class ReviewerEngine:
             language_filter=self.config.language,
         )
         self.ai_provider: BaseAIProvider = get_ai_provider(self.config)
-        self.static_analyzer = StaticAnalyzer()
+        self.static_analyzer = StaticAnalyzer(custom_rules=self.config.custom_rules)
         self.cache_manager = FileCacheManager()
         self.rag_engine = RAGEngine()
 
