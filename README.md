@@ -138,7 +138,16 @@ codereview --performance
 codereview --architecture
 ```
 
-### 6. Report Exporting
+### 6. SARIF & SVG Badge Export
+```bash
+# Export OASIS SARIF v2.1.0 report for GitHub Security / Code Scanning tab
+codereview --sarif report.sarif
+
+# Generate SVG health score status badge for README header
+codereview --badge codehealth.svg
+```
+
+### 7. Report Exporting
 ```bash
 # Generate Chart.js HTML dashboard and Markdown report
 codereview --html --markdown

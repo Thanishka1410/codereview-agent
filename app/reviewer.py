@@ -1,3 +1,4 @@
+import sys
 from pathlib import Path
 from typing import List, Dict, Optional
 from pydantic import BaseModel, Field
@@ -185,6 +186,25 @@ class ReviewerEngine:
         except Exception as e:
             if self.config.verbose:
                 print(f"Warning: Failed to record review history: {e}", file=sys.stderr)
+
+        # Generate SARIF report if requested
+        if self.config.sarif_output:
+            try:
+                from app.sarif import SARIFGenerator
+                sarif_gen = SARIFGenerator(all_issues, target_path=str(target_path))
+                sarif_gen.export_sarif_file(Path(self.config.sarif_output))
+            except Exception as e:
+                if self.config.verbose:
+                    print(f"Warning: Failed to export SARIF report: {e}", file=sys.stderr)
+
+        # Generate SVG Badge if requested
+        if self.config.badge_output:
+            try:
+                from app.badge import BadgeGenerator
+                BadgeGenerator.export_badge_file(scores.overall_score, Path(self.config.badge_output))
+            except Exception as e:
+                if self.config.verbose:
+                    print(f"Warning: Failed to export SVG badge: {e}", file=sys.stderr)
 
         return ProjectReviewResult(
             scan_result=scan_result,

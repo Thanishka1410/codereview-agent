@@ -1,7 +1,7 @@
 {
   "README.md": {
     "file_path": "README.md",
-    "sha256": "843d44464af7758c9b2886a6fa60b4e935e7d4a7090646c98161393d86ee4f42",
+    "sha256": "ebee5991ec593c878197d0080830476cb7293e352a0c65b5fbc0b7d5bde77afa",
     "issues": []
   },
   "app\\__init__.py": {
@@ -49,6 +49,11 @@
     "sha256": "c86cd767b3aaf5de773d38690e4440cde023263adbbcd9363e8522fc57427289",
     "issues": []
   },
+  "app\\badge.py": {
+    "file_path": "app\\badge.py",
+    "sha256": "6eb401a7a64dce4006fbd710fae1c9f43bf54d66066e5e29377a8eb419bdb8d9",
+    "issues": []
+  },
   "app\\cache.py": {
     "file_path": "app\\cache.py",
     "sha256": "2687d67d1840666be1ccf974f64dcdda22188243ed8bd3f1cbb111f7f0216600",
@@ -56,12 +61,37 @@
   },
   "app\\cli.py": {
     "file_path": "app\\cli.py",
-    "sha256": "48a397fd8160e1393f843ff0d42a2703611090ac67dab5cab9e0f354177f254f",
-    "issues": []
+    "sha256": "e2dc03af756358e23f75b3c40fd6dca6d63b5b5f64ff973425e84e2b5b3b2732",
+    "issues": [
+      {
+        "severity": "INFO",
+        "category": "Architecture",
+        "file_path": "app\\cli.py",
+        "line_number": 1,
+        "title": "Large Source File (354 lines)",
+        "description": "File contains 354 lines of code, exceeding modular guideline of 350 lines.",
+        "suggestion": "Decompose file into focused sub-modules or utility helper classes adhering to SRP.",
+        "code_example": null,
+        "confidence_score": 0.75,
+        "estimated_fix_minutes": 45
+      },
+      {
+        "severity": "INFO",
+        "category": "Architecture",
+        "file_path": "app\\cli.py",
+        "line_number": 1,
+        "title": "Large Source File (>350 lines)",
+        "description": "File has 354 lines of code. Large files violate Single Responsibility Principle.",
+        "suggestion": "Consider refactoring into smaller modular components or helper utilities.",
+        "code_example": null,
+        "confidence_score": 0.9,
+        "estimated_fix_minutes": 15
+      }
+    ]
   },
   "app\\config.py": {
     "file_path": "app\\config.py",
-    "sha256": "1875b1e769a6fee581d92cdfa820022e711423806356a119ff1fc378f685b9e0",
+    "sha256": "b78b4ef90273cf3f925785aaaf14c21c01475fd87bf896ea112fba42616bb94f",
     "issues": []
   },
   "app\\context.py": {
@@ -76,7 +106,7 @@
   },
   "app\\formatter.py": {
     "file_path": "app\\formatter.py",
-    "sha256": "422ce7d6605f729b0d5726ecc443f9afda9c50463295740cb9b82927bcc9e48f",
+    "sha256": "51d83fbc922c05ea6b42e12db440f941c3352b98af4d4e2125b65a5a2d285f83",
     "issues": []
   },
   "app\\github.py": {
@@ -124,8 +154,26 @@
   },
   "app\\reviewer.py": {
     "file_path": "app\\reviewer.py",
-    "sha256": "0cbb8d8b37cc0439ead12d2faf646bdfc65b28b3e48e18b395a574bf0f1b28c5",
+    "sha256": "549c9c99777b358723e9575dff68a6b8dbd97d8cf2efc37d7db9f07cfeafcefa",
     "issues": []
+  },
+  "app\\sarif.py": {
+    "file_path": "app\\sarif.py",
+    "sha256": "7a3e0d02e72dc6bfd4634b6a0c4c1aa30a94e30fa53b0c98e64d151fb87e22f7",
+    "issues": [
+      {
+        "severity": "MEDIUM",
+        "category": "Quality",
+        "file_path": "app\\sarif.py",
+        "line_number": 65,
+        "title": "Deep Nesting Level (7 levels)",
+        "description": "Deeply nested code block at line 65 reduces readability and increases cognitive complexity.",
+        "suggestion": "Refactor nested conditionals using guard clauses or break logic into helper functions.",
+        "code_example": "if not condition:\n    return\n# Main logic continues here",
+        "confidence_score": 0.85,
+        "estimated_fix_minutes": 25
+      }
+    ]
   },
   "app\\scanner.py": {
     "file_path": "app\\scanner.py",
@@ -210,6 +258,11 @@
     "sha256": "f49cabcf068f8ceb2218b2f0bf8d161a945aaa4a8efa181c20d578ebc766bf3a",
     "issues": []
   },
+  "tests\\test_sarif_and_badge.py": {
+    "file_path": "tests\\test_sarif_and_badge.py",
+    "sha256": "2c859f5365db978cacfe8798773874310c0a949d3d0ca0c061b78a37b1156f87",
+    "issues": []
+  },
   "tests\\test_static_analysis.py": {
     "file_path": "tests\\test_static_analysis.py",
     "sha256": "a6042df3d55abfea935423046b0844f13ff0f8491aa104a0bf7894e49be1c711",
@@ -243,6 +296,171 @@
   "vscode-extension\\tsconfig.json": {
     "file_path": "vscode-extension\\tsconfig.json",
     "sha256": "5a9786778912bde40b148e20041f27206dbd7a4f2b58a441b746f4162171f3f3",
+    "issues": []
+  },
+  "docs\\styleguide.md": {
+    "file_path": "docs\\styleguide.md",
+    "sha256": "5cbad1c0d5e66594f093571c7efe6e7096f95c10866b61557217c00850bc838b",
+    "issues": [
+      {
+        "severity": "HIGH",
+        "category": "Security",
+        "file_path": "docs\\styleguide.md",
+        "line_number": 9,
+        "title": "Dynamic Code Execution (eval/exec)",
+        "description": "Use of eval() or exec() can allow arbitrary code execution vulnerabilities.",
+        "suggestion": "Replace dynamic code execution with safe dictionary mapping or ast.literal_eval.",
+        "code_example": null,
+        "confidence_score": 0.9,
+        "estimated_fix_minutes": 15
+      }
+    ]
+  },
+  "sample_script.js": {
+    "file_path": "sample_script.js",
+    "sha256": "c8cfb135d0f59b4223f9808102008b4ff6041dd924d99a5f8bd2d40da6f586a9",
+    "issues": [
+      {
+        "severity": "HIGH",
+        "category": "Security",
+        "file_path": "sample_script.js",
+        "line_number": 12,
+        "title": "Unsafe Code Execution (eval/exec)",
+        "description": "Dynamic code evaluation using eval() or exec() allows arbitrary code execution.",
+        "suggestion": "Replace eval() with ast.literal_eval() for safe literal evaluation or dictionary lookup.",
+        "code_example": "import ast; value = ast.literal_eval(user_input)",
+        "confidence_score": 0.95,
+        "estimated_fix_minutes": 25
+      },
+      {
+        "severity": "HIGH",
+        "category": "Security",
+        "file_path": "sample_script.js",
+        "line_number": 11,
+        "title": "Dynamic Code Execution (eval/exec)",
+        "description": "Use of eval() or exec() can allow arbitrary code execution vulnerabilities.",
+        "suggestion": "Replace dynamic code execution with safe dictionary mapping or ast.literal_eval.",
+        "code_example": null,
+        "confidence_score": 0.9,
+        "estimated_fix_minutes": 15
+      }
+    ]
+  },
+  "sample_vulnerable.py": {
+    "file_path": "sample_vulnerable.py",
+    "sha256": "d8371e86d4d487f38d9d7ecb8eeac3a1407bb2838b846e9e9b11fb1a07c3aee5",
+    "issues": [
+      {
+        "severity": "HIGH",
+        "category": "Security",
+        "file_path": "sample_vulnerable.py",
+        "line_number": 11,
+        "title": "Potential SQL Injection Vulnerability",
+        "description": "String concatenation or f-string interpolation detected inside SQL query string.",
+        "suggestion": "Use parameterized query placeholders or ORM bindings (e.g. cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))).",
+        "code_example": "cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))",
+        "confidence_score": 0.95,
+        "estimated_fix_minutes": 20
+      },
+      {
+        "severity": "HIGH",
+        "category": "Security",
+        "file_path": "sample_vulnerable.py",
+        "line_number": 3,
+        "title": "Hardcoded Credential or API Secret",
+        "description": "Plaintext password, API key, or secret token detected in source code.",
+        "suggestion": "Store secrets in environment variables (os.environ) or an external secret manager.",
+        "code_example": "api_key = os.getenv('API_KEY')",
+        "confidence_score": 0.9,
+        "estimated_fix_minutes": 15
+      },
+      {
+        "severity": "HIGH",
+        "category": "Security",
+        "file_path": "sample_vulnerable.py",
+        "line_number": 20,
+        "title": "Unsafe Code Execution (eval/exec)",
+        "description": "Dynamic code evaluation using eval() or exec() allows arbitrary code execution.",
+        "suggestion": "Replace eval() with ast.literal_eval() for safe literal evaluation or dictionary lookup.",
+        "code_example": "import ast; value = ast.literal_eval(user_input)",
+        "confidence_score": 0.95,
+        "estimated_fix_minutes": 25
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "Quality",
+        "file_path": "sample_vulnerable.py",
+        "line_number": 1,
+        "title": "Silently Swallowed Exception",
+        "description": "Broad exception block with 'pass' hides unexpected errors during execution.",
+        "suggestion": "Catch specific exception types and log error details.",
+        "code_example": "except ValueError as e:\n    logger.error(f'Validation error: {e}')",
+        "confidence_score": 0.9,
+        "estimated_fix_minutes": 15
+      },
+      {
+        "severity": "HIGH",
+        "category": "Security",
+        "file_path": "sample_vulnerable.py",
+        "line_number": 11,
+        "title": "Potential SQL Injection",
+        "description": "String concatenation or interpolation detected in SQL query construction.",
+        "suggestion": "Use parameterized queries or ORM bindings (e.g., cursor.execute('SELECT * FROM users WHERE id = ?', (user_id,))).",
+        "code_example": null,
+        "confidence_score": 0.9,
+        "estimated_fix_minutes": 15
+      },
+      {
+        "severity": "HIGH",
+        "category": "Security",
+        "file_path": "sample_vulnerable.py",
+        "line_number": 3,
+        "title": "Hardcoded Credentials / Secret",
+        "description": "Sensitive secret, API key, or password appears to be hardcoded in source file.",
+        "suggestion": "Move secret to environment variables (`os.getenv(...)`) or external secret manager.",
+        "code_example": null,
+        "confidence_score": 0.9,
+        "estimated_fix_minutes": 15
+      },
+      {
+        "severity": "HIGH",
+        "category": "Security",
+        "file_path": "sample_vulnerable.py",
+        "line_number": 12,
+        "title": "Dynamic Code Execution (eval/exec)",
+        "description": "Use of eval() or exec() can allow arbitrary code execution vulnerabilities.",
+        "suggestion": "Replace dynamic code execution with safe dictionary mapping or ast.literal_eval.",
+        "code_example": null,
+        "confidence_score": 0.9,
+        "estimated_fix_minutes": 15
+      },
+      {
+        "severity": "MEDIUM",
+        "category": "Bug",
+        "file_path": "sample_vulnerable.py",
+        "line_number": 4,
+        "title": "Silently Swallowed Exception",
+        "description": "Broad exception handler with 'pass' hides runtime errors and makes debugging extremely difficult.",
+        "suggestion": "Catch specific exception types and log the exception details properly.",
+        "code_example": null,
+        "confidence_score": 0.9,
+        "estimated_fix_minutes": 15
+      }
+    ]
+  },
+  "app.py": {
+    "file_path": "app.py",
+    "sha256": "7bcf6e1bebc5b1e353c3ba62f2ffeceeeff8a9f36a521943cd24b34e7a7388b5",
+    "issues": []
+  },
+  "utils.py": {
+    "file_path": "utils.py",
+    "sha256": "552de4ff6e29c9a17522f138239dd299e4d6f95ef7e0979e4ef772c892a62533",
+    "issues": []
+  },
+  "test_app.py": {
+    "file_path": "test_app.py",
+    "sha256": "cd14466f9a65ff0ae4971b8bd152cd2fadeb5c372ededebdfdd73538f4472f06",
     "issues": []
   }
 }

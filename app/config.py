@@ -1,3 +1,7 @@
+"""
+Configuration loader and Pydantic model for CodeReview Agent parameters.
+"""
+
 import os
 import sys
 from pathlib import Path
@@ -38,6 +42,8 @@ class ReviewConfig(BaseModel):
     docs_dir: Optional[str] = Field(default=None, description="Path to documentation folder for RAG")
     verbose: bool = Field(default=False, description="Enable verbose logging output")
     ollama_host: str = Field(default="http://localhost:11434", description="Ollama local API host URL")
+    sarif_output: Optional[str] = Field(default=None, description="Path to write SARIF v2.1.0 report")
+    badge_output: Optional[str] = Field(default=None, description="Path to write SVG status badge")
     custom_rules: List[CustomRule] = Field(default_factory=list, description="User-defined custom static analysis rules")
 
 

@@ -1,0 +1,204 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "CodeReview-Agent",
+          "version": "1.1.0",
+          "informationUri": "https://github.com/Thanishka1410/codereview-agent",
+          "rules": [
+            {
+              "id": "CR-ARCHITECTURE-4160",
+              "name": "Large Source File (354 lines)",
+              "shortDescription": {
+                "text": "Large Source File (354 lines)"
+              },
+              "fullDescription": {
+                "text": "File contains 354 lines of code, exceeding modular guideline of 350 lines."
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "category": "Architecture",
+                "precision": "high"
+              }
+            },
+            {
+              "id": "CR-ARCHITECTURE-2140",
+              "name": "Large Source File (>350 lines)",
+              "shortDescription": {
+                "text": "Large Source File (>350 lines)"
+              },
+              "fullDescription": {
+                "text": "File has 354 lines of code. Large files violate Single Responsibility Principle."
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "category": "Architecture",
+                "precision": "high"
+              }
+            },
+            {
+              "id": "CR-QUALITY-8427",
+              "name": "Silently Swallowed Exception",
+              "shortDescription": {
+                "text": "Silently Swallowed Exception"
+              },
+              "fullDescription": {
+                "text": "Broad exception block with 'pass' hides unexpected errors during execution."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "category": "Quality",
+                "precision": "high"
+              }
+            },
+            {
+              "id": "CR-QUALITY-0096",
+              "name": "Deep Nesting Level (7 levels)",
+              "shortDescription": {
+                "text": "Deep Nesting Level (7 levels)"
+              },
+              "fullDescription": {
+                "text": "Deeply nested code block at line 65 reduces readability and increases cognitive complexity."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "category": "Quality",
+                "precision": "high"
+              }
+            },
+            {
+              "id": "CR-PERFORMANCE-0377",
+              "name": "Nested Loop Detected (O(n\u00b2) Complexity)",
+              "shortDescription": {
+                "text": "Nested Loop Detected (O(n\u00b2) Complexity)"
+              },
+              "fullDescription": {
+                "text": "Nested loop can significantly degrade runtime performance on large datasets."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "category": "Performance",
+                "precision": "high"
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "CR-ARCHITECTURE-4160",
+          "level": "note",
+          "message": {
+            "text": "File contains 354 lines of code, exceeding modular guideline of 350 lines.\n\nSuggested Fix:\nDecompose file into focused sub-modules or utility helper classes adhering to SRP."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "app/cli.py",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CR-ARCHITECTURE-2140",
+          "level": "note",
+          "message": {
+            "text": "File has 354 lines of code. Large files violate Single Responsibility Principle.\n\nSuggested Fix:\nConsider refactoring into smaller modular components or helper utilities."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "app/cli.py",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CR-QUALITY-8427",
+          "level": "warning",
+          "message": {
+            "text": "Broad exception block with 'pass' hides unexpected errors during execution.\n\nSuggested Fix:\nCatch specific exception types and log error details."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "app/hooks.py",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CR-QUALITY-0096",
+          "level": "warning",
+          "message": {
+            "text": "Deeply nested code block at line 65 reduces readability and increases cognitive complexity.\n\nSuggested Fix:\nRefactor nested conditionals using guard clauses or break logic into helper functions."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "app/sarif.py",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 65
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CR-PERFORMANCE-0377",
+          "level": "warning",
+          "message": {
+            "text": "Nested loop can significantly degrade runtime performance on large datasets.\n\nSuggested Fix:\nUse set lookups, dictionary mapping, or vectorized operations to reduce quadratic complexity to O(n)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "app/utils.py",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 38
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -177,6 +177,16 @@ def review(
         "-c",
         help="Path to custom .codereview.toml config file",
     ),
+    sarif: Optional[str] = typer.Option(
+        None,
+        "--sarif",
+        help="Export findings in OASIS SARIF v2.1.0 JSON format (e.g. --sarif or --sarif report.sarif)",
+    ),
+    badge: Optional[str] = typer.Option(
+        None,
+        "--badge",
+        help="Generate SVG health score status badge (e.g. --badge or --badge codehealth.svg)",
+    ),
     version: Optional[bool] = typer.Option(
         None,
         "--version",
@@ -194,6 +204,8 @@ def review(
 
     # Load configuration
     cfg = load_config(config_file)
+    if self_debug := True:
+        pass
     if provider:
         cfg.provider = provider
     if model:
@@ -204,6 +216,10 @@ def review(
         cfg.use_rag = True
     if docs_dir:
         cfg.docs_dir = docs_dir
+    if sarif is not None:
+        cfg.sarif_output = "codereview-results.sarif" if sarif in (True, "", "True", "true") else sarif
+    if badge is not None:
+        cfg.badge_output = "codehealth.svg" if badge in (True, "", "True", "true") else badge
     cfg.verbose = verbose
 
     # Determine category filter
