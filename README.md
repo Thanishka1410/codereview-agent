@@ -6,6 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue.svg)](pyproject.toml)
 [![Release](https://img.shields.io/badge/release-v1.1.0-brightgreen.svg)](https://github.com/Thanishka1410/codereview-agent/releases)
+[![Code Health](codehealth.svg)](https://github.com/Thanishka1410/codereview-agent)
 
 `codereview` is an intelligent, developer-centric CLI tool built to review large software repositories. Combining a **rules-based static analysis engine** with **custom regex rule extensibility**, **Git pre-commit hook automation**, **local SQLite historical trend tracking**, **VS Code / Cursor extension wrappers**, and **multi-provider LLM integrations** (OpenAI GPT-4o, Google Gemini, Anthropic Claude, Local Ollama, and an offline mock engine), `codereview` delivers actionable, weighted code assessments directly in your terminal and exports interactive HTML dashboards.
 
